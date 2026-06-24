@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>mkgrid — plan your Instagram grid before you post</title>
+<meta name="description" content="Plan your Instagram grid before you post. Drag in your photos, arrange the feed, set every crop, and export post-ready images — or the whole profile as one image. Local-only, open-source, no upload, no account.">
+<meta name="keywords" content="Instagram grid planner, feed planner, Instagram layout, 3:4 grid, plan Instagram feed, grid preview, puzzle feed, panorama feed, content planner, privacy, open source, no upload, mkgrid">
+<meta name="author" content="Chris Vrakas">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="canonical" href="https://mkgrid.app/">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mkgrid.app/">
+<meta property="og:site_name" content="mkgrid">
+<meta property="og:title" content="mkgrid — plan your Instagram grid before you post">
+<meta property="og:description" content="Drag in your photos, arrange the feed, set every crop, export. Local-only, open-source, nothing leaves your device.">
+<meta property="og:image" content="https://mkgrid.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="mkgrid — a privacy-first Instagram grid planner">
+<meta name="robots" content="index, follow">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://mkgrid.app/">
+<meta name="twitter:title" content="mkgrid — plan your Instagram grid before you post">
+<meta name="twitter:description" content="Drag in your photos, arrange the feed, set every crop, export. Local-only, open-source, nothing leaves your device.">
+<meta name="twitter:image" content="https://mkgrid.app/og-image.png">
+<meta name="twitter:image:alt" content="mkgrid — a privacy-first Instagram grid planner">
+
+<!-- Favicons -->
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "mkgrid",
+  "url": "https://mkgrid.app/",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Any (web browser)",
+  "description": "Privacy-first Instagram grid planner. Arrange, crop, and preview your feed, then export post-ready images — entirely in your browser. No upload, no account.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Chris Vrakas", "url": "https://chrisvrakas.com" },
+  "isAccessibleForFree": true,
+  "featureList": [
+    "Plan your Instagram grid in a true 3:4 layout",
+    "Drag to reorder, pan and zoom to crop every tile",
+    "Span one image across a full row (banner / panorama)",
+    "Editable profile mockup — avatar, bio, stats, highlights",
+    "Export post-ready images or the whole feed as one image",
+    "Runs entirely in your browser — no upload, no account, no tracking"
+  ]
+}
+</script>
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --surface: #161617;
+    --elevated: #1f1f21;
+    --border: #2a2a2c;
+    --border-bright: #3a3a3d;
+    --text: #ececed;
+    --text-dim: #8a8a8f;
+    --accent: #ff4438;
+    --focus: #4a9eff;
+    --gap: 2px;
+    --ratio: 3 / 4;
+    --header-h: 56px;
+    --maxw: 1560px;
+    --gutter: max(32px, calc((100vw - var(--maxw)) / 2));
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body { overscroll-behavior-x: none; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px; overflow-x: hidden;
+  }
+  .app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+
+  /* header */
+  .header {
+    min-height: var(--header-h); background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px var(--gutter); gap: 10px; flex-wrap: wrap; flex-shrink: 0;
+  }
+  .logo { display: inline-flex; align-items: center; margin-left: 0; } .logo svg { height: 24px; width: auto; display: block; }
+  .logo .cur { animation: logoblink 1.1s steps(1) infinite; }
+  @keyframes logoblink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .logo .cur, .sb-cur { animation: none; } }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .seg { display: flex; gap: 3px; background: var(--elevated); padding: 3px; border: 1px solid var(--border); border-radius: 5px; }
+  .seg button { background: none; border: none; color: var(--text-dim); font: inherit; font-size: 11px; padding: 6px 11px; cursor: pointer; border-radius: 3px; }
+  .seg button:hover { color: var(--text); }
+  .seg button.active { background: var(--accent); color: #000; font-weight: 600; }
+  .btn {
+    background: none; border: 1px solid var(--border); color: var(--text);
+    padding: 7px 13px; font: inherit; font-size: 11px; cursor: pointer; border-radius: 5px;
+    transition: background .12s, border-color .12s;
+  }
+  .btn:hover:not(:disabled) { background: var(--elevated); border-color: var(--border-bright); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-icon { padding: 7px 10px; min-width: 34px; }
+  .btn-accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .btn-accent:hover:not(:disabled) { background: #ff5c52; }
+  .btn-accent:disabled { opacity: 1; background: #3a1714; color: var(--text-dim); border-color: #3a1714; }
+
+  /* main */
+  /* workspace shell — centers + frames the tool so it reads as a contained object, not a void */
+  .shell { flex: 1; min-height: 0; display: flex; padding: 18px var(--gutter); background: var(--bg); overflow: hidden; }
+  .main {
+    display: flex; flex: 1; min-height: 0; overflow: hidden;
+    max-width: var(--maxw); margin: 0 auto; width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-top: 2px solid var(--accent);
+    border-radius: 6px;
+    box-shadow: 0 12px 50px rgba(0,0,0,.55);
+  }
+  /* round the inner column corners to match the frame */
+  .main > .sidebar { border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
+  .main > .rail { border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
+  .sidebar {
+    width: clamp(280px, 19vw, 360px); background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+  }
+  .dropzone {
+    border: 1.5px dashed var(--border-bright); margin: 16px; padding: 22px 16px;
+    text-align: center; background: #0e0e0f; cursor: pointer; border-radius: 8px; flex-shrink: 0;
+    transition: border-color .12s, background .12s;
+  }
+  .dropzone:hover { border-color: #4a4a4d; }
+  .dropzone.over { border-color: var(--accent); background: #1a0f0e; }
+  .dropzone strong { color: var(--accent); display: block; font-size: 13px; letter-spacing: .3px; }
+  .dropzone span { font-size: 10px; color: var(--text-dim); display: block; margin-top: 7px; }
+
+  .tray { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 7px; }
+  .tray-empty { color: #4a4a4d; text-align: center; padding: 20px 0; font-size: 11px; }
+  .chip {
+    background: var(--elevated); border-left: 3px solid var(--accent); border-radius: 0 5px 5px 0;
+    display: flex; align-items: center; gap: 10px; padding: 7px 9px; cursor: grab; touch-action: none; user-select: none;
+  }
+  .chip.dragging { opacity: .3; }
+  .chip img { width: 42px; height: 42px; object-fit: cover; border-radius: 3px; flex-shrink: 0; pointer-events: none; background: #2a2a2c; }
+  .chip .name { font-size: 11px; color: var(--text-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip .del { background: none; border: none; color: var(--text-dim); font-size: 15px; cursor: pointer; padding: 4px 6px; }
+  .chip .del:hover { color: var(--accent); }
+
+  .stage { flex: 1; overflow: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 16px; background: var(--bg); background-image: linear-gradient(rgba(58,58,61,.32) 1px, transparent 1px), linear-gradient(90deg, rgba(58,58,61,.32) 1px, transparent 1px); background-size: 32px 32px; -webkit-overflow-scrolling: touch; }
+  .phone {
+    width: fit-content; max-width: 100%; background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px; box-shadow: 0 6px 30px rgba(0,0,0,.6); padding: 16px; flex-shrink: 0;
+  }
+  .phone-bar { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px 12px; border-bottom: 1px solid var(--border-bright); margin-bottom: 14px; font-size: 13px; color: var(--text); letter-spacing: .3px; }
+  .phone-bar .dots { color: var(--text-dim); }
+  .pb-handle { font-weight: 700; outline: none; }
+  .pb-handle:focus { color: var(--accent); }
+
+  /* profile */
+  .prof { padding: 0 4px; margin-bottom: 14px; }
+  .prof-row { display: flex; align-items: center; gap: 22px; margin-bottom: 14px; }
+  .avatar {
+    width: 76px; height: 76px; border-radius: 50%; flex-shrink: 0; position: relative; cursor: pointer;
+    background: #1c1c1e; border: 2px solid var(--accent); overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .avatar.has img { display: block; }
+  .avatar .avatar-plus { color: var(--text-dim); font-size: 24px; font-weight: 300; }
+  .avatar.has .avatar-plus { display: none; }
+  .stats { display: flex; flex: 1; justify-content: space-around; text-align: center; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat b { font-size: 16px; font-weight: 700; outline: none; min-width: 24px; }
+  .stat b:focus { color: var(--accent); }
+  .stat span { font-size: 11px; color: var(--text-dim); }
+  .prof-name { font-weight: 700; font-size: 13px; margin-bottom: 4px; outline: none; }
+  .prof-bio { font-size: 12px; line-height: 1.5; color: #cfcfd2; white-space: pre-wrap; outline: none; margin-bottom: 3px; }
+  .prof-name:focus, .prof-bio:focus, .prof-link:focus { box-shadow: 0 0 0 1px var(--border-bright); border-radius: 3px; }
+  .prof-link { display: inline-block; font-size: 12px; color: #5a9ade; text-decoration: none; outline: none; cursor: text; }
+
+  .hl-wrap { margin-top: 14px; }
+  .hl-toggle { background: none; border: 1px dashed var(--border-bright); color: var(--text-dim); font: inherit; font-size: 11px; padding: 6px 12px; border-radius: 16px; cursor: pointer; }
+  .hl-toggle:hover { color: var(--text); border-color: #4a4a4d; }
+  .hl-toggle.on { border-style: solid; color: var(--accent); border-color: var(--accent); }
+  .hl-row { display: flex; gap: 14px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .hl-row[hidden] { display: none; }
+  .hl { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; position: relative; }
+  .hl-circle { width: 56px; height: 56px; border-radius: 50%; background: #1c1c1e; border: 1px solid var(--border-bright); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 20px; }
+  .hl-circle img { width: 100%; height: 100%; object-fit: cover; }
+  .hl-label { font-size: 10px; color: var(--text-dim); outline: none; max-width: 60px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hl-label:focus { color: var(--text); }
+  .hl-del { position: absolute; top: -4px; right: -2px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #000; border: none; font-size: 10px; line-height: 1; cursor: pointer; display: none; }
+  .hl:hover .hl-del { display: block; }
+  .hl-add .hl-circle { border-style: dashed; }
+
+  .tabbar { display: flex; justify-content: space-around; border-top: 1px solid var(--border); padding: 10px 0 4px; margin-bottom: 8px; }
+  .tab { color: #3a3a3d; font-size: 15px; }
+  .tab.active { color: var(--text); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); background: var(--border-bright); }
+  .cell {
+    position: relative; overflow: hidden; background: #191a1c;
+    aspect-ratio: var(--ratio); touch-action: manipulation; user-select: none;
+  }
+  .cell.active { touch-action: none; }
+  .cell.has { cursor: grab; }
+  .cell.has:active { cursor: grabbing; }
+  .cell.focus { outline: 2px solid var(--focus); outline-offset: -2px; z-index: 4; }
+  .cell.sel { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 5; }
+  .cell.drop { outline: 2px dashed var(--accent); outline-offset: -2px; z-index: 7; }
+  .cell img { position: absolute; display: block; pointer-events: none; -webkit-user-drag: none; }
+  .cell .plus { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #45464a; font-size: 18px; font-weight: 300; pointer-events: none; transition: color .15s; }
+  .cell:hover .plus { color: #6a6b6f; }
+
+  .grip { position: absolute; top: 5px; left: 5px; width: 26px; height: 26px; border-radius: 5px; background: rgba(0,0,0,.55); color: #ddd; display: none; align-items: center; justify-content: center; cursor: grab; z-index: 16; font-size: 13px; touch-action: none; }
+  .cell.has .grip { display: flex; }
+  .cell.banner .grip { display: none; }
+  .grip:active { cursor: grabbing; }
+
+  .check { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.75); background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 16; }
+  .cell.has .check { display: flex; }
+  .cell.sel .check { background: var(--accent); border-color: var(--accent); }
+  .check svg { width: 11px; height: 11px; stroke: #000; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+  .cell.sel .check svg { opacity: 1; }
+
+  .tools { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 5px; opacity: 0; transition: opacity .1s; z-index: 15; }
+  .cell:hover .tools, .cell.active .tools { opacity: 1; }
+  .tools button { background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 9px; padding: 4px 7px; border-radius: 3px; cursor: pointer; letter-spacing: .3px; }
+  .tools button:hover { border-color: var(--accent); color: #fff; }
+  .tools button.span-btn { border-color: #8a6a00; color: #e0a020; }
+  .tools button.span-btn:hover { border-color: #e0a020; color: #ffc24d; }
+
+  .hint { margin-top: 10px; font-size: 11px; color: #555; text-align: center; line-height: 1.7; }
+  .rail { width: clamp(280px, 19vw, 360px); flex-shrink: 0; background: var(--surface); border-left: 1px solid var(--border); overflow-y: auto; padding: 22px 18px; display: flex; flex-direction: column; gap: 28px; }
+  .rail-h { font-size: 10px; letter-spacing: 2px; color: var(--accent); margin-bottom: 14px; }
+  .rail .zoom { display: flex; align-items: center; gap: 10px; }
+  .rail .zoom input[type=range] { flex: 1; width: auto; }
+  .rail-note { font-size: 11px; color: #6a6a6e; line-height: 1.6; margin-top: 14px; }
+  .rail-tips { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  .rail-tips li { font-size: 11px; color: var(--text-dim); line-height: 1.5; padding-left: 16px; position: relative; }
+  .rail-tips li::before { content: "\203A"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+  /* footer */
+  /* footer — terminal status bar */
+  .footer { background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 var(--gutter); height: 30px; flex-shrink: 0; font-size: 11px; line-height: 1; white-space: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .footer::-webkit-scrollbar { display: none; }
+  .sb-zone { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .sb-chev { color: var(--accent); font-weight: 700; }
+  .sb-brand { color: var(--text); }
+  .sb-sep { color: var(--accent); }
+  .sb-tag { color: var(--text-dim); }
+  .sb-cur { color: var(--accent); margin-left: -4px; animation: logoblink 1.1s steps(1) infinite; }
+  .sb-pipe { color: #3a3a3c; }
+  .sb-mid span:not(.sb-pipe) { color: var(--text-dim); }
+  .sb-right a, .sb-right .sb-dom { color: var(--text-dim); text-decoration: none; }
+  .sb-right a:hover { color: var(--accent); }
+  .sb-link { color: var(--text-dim); text-decoration: none; border-bottom: 1px dotted #565659; cursor: pointer; }
+  .sb-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+  .sb-privacy { color: var(--text); border-bottom: 1px solid var(--accent); }
+  .sb-privacy:hover { color: var(--accent); }
+  .sb-by { color: var(--text-dim); }
+  .sb-cl { color: var(--accent); display: inline-flex; align-items: center; }
+  /* zoom — relocated above the hint */
+  .zoombar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 18px; }
+  .zoombar .zlabel { font-size: 10px; letter-spacing: 2px; color: var(--text-dim); }
+  .zoom { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+  .zoom span { font-size: 11px; color: var(--text-dim); }
+  @media (max-width: 980px) { .sb-mid { display: none; } }
+  @media (max-width: 600px) { .footer { justify-content: flex-start; gap: 14px; } }
+  .zoom input[type=range] { width: 130px; height: 3px; background: #2c2c2e; -webkit-appearance: none; appearance: none; border-radius: 2px; }
+  .zoom input[type=range]:disabled { opacity: .4; }
+  .zoom input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; background: var(--accent); border-radius: 3px; cursor: pointer; }
+  .zoom input[type=range]::-moz-range-thumb { width: 15px; height: 15px; background: var(--accent); border: none; border-radius: 3px; cursor: pointer; }
+
+  /* modal */
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; visibility: hidden; opacity: 0; transition: opacity .15s; }
+  .modal.open { visibility: visible; opacity: 1; }
+  .card { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 26px; max-width: 540px; width: 100%; max-height: 86dvh; overflow-y: auto; }
+  .card h3 { font-size: 15px; margin-bottom: 5px; }
+  .card .sub { font-size: 11px; color: var(--text-dim); margin-bottom: 14px; }
+  .opt { display: flex; gap: 16px; align-items: center; font-size: 11px; color: var(--text-dim); margin-bottom: 14px; }
+  .opt label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  .preview { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); background: var(--border); padding: var(--gap); border-radius: 5px; }
+  .pv { aspect-ratio: var(--ratio); background: #000; position: relative; overflow: hidden; }
+  .pv img { position: absolute; display: block; }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .expmode { width: 100%; margin-bottom: 16px; }
+  .expmode button { flex: 1; padding: 9px; }
+  .selctl { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .mini { background: var(--elevated); border: 1px solid var(--border); color: var(--text-dim); font: inherit; font-size: 10px; padding: 4px 9px; border-radius: 4px; cursor: pointer; }
+  .mini:hover { color: var(--text); border-color: var(--border-bright); }
+  .mini.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .pv-empty { grid-column: 1 / -1; text-align: center; color: var(--text-dim); font-size: 11px; padding: 38px 16px; line-height: 1.6; }
+  .pv-empty b { color: var(--accent); }
+  .feed-preview { display: flex; align-items: center; justify-content: center; min-height: 220px; max-height: 56dvh; overflow: auto; background: #0a0a0b; border: 1px solid var(--border); border-radius: 6px; margin: 14px 0 4px; }
+  .feed-img { max-width: 100%; height: auto; display: block; border-radius: 3px; }
+  .feed-loading { color: var(--text-dim); font-size: 12px; padding: 40px; }
+
+  #ghost { position: fixed; pointer-events: none; z-index: 2000; width: 76px; aspect-ratio: var(--ratio); border-radius: 5px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,.6); opacity: .92; display: none; background: #222; }
+  #ghost img { width: 100%; height: 100%; object-fit: cover; }
+  canvas { display: none; }
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 4px; }
+
+  @media (max-width: 820px) {
+    .app { height: auto; min-height: 100dvh; }
+    :root { --gutter: 16px; }
+    .shell { display: block; padding: 0; overflow: visible; }
+    .main { flex-direction: column; overflow: visible; max-width: none; margin: 0; border: none; border-radius: 0; box-shadow: none; }
+    .main > .sidebar, .main > .rail { border-radius: 0; }
+    .stage { flex: none; overflow: visible; padding: 20px 16px 30px; }
+    .rail { width: 100%; border-left: none; border-top: 1px solid var(--border); overflow: visible; padding: 20px 16px; }
+    .sidebar { width: 100%; flex-direction: row; height: 98px; border-right: none; border-bottom: 1px solid var(--border); }
+    .dropzone { margin: 10px; padding: 12px; min-width: 140px; display: flex; flex-direction: column; justify-content: center; }
+    .dropzone strong { font-size: 12px; }
+    .tray { flex-direction: row; padding: 10px; gap: 8px; overflow-x: auto; overflow-y: hidden; }
+    .chip { flex-direction: column; gap: 3px; width: 64px; padding: 6px; flex-shrink: 0; border-left: none; border-top: 3px solid var(--accent); border-radius: 0 0 5px 5px; }
+    .chip img { width: 50px; height: 50px; }
+    .chip .name { display: none; }
+    .stage { padding: 16px 10px 30px; }
+    .phone { width: 100%; padding: 10px; }
+    .desk { display: none; }
+    .grip, .check { width: 30px; height: 30px; }
+    .zoombar .zoom input[type=range] { width: 150px; }
+  }
+  @media (min-width: 821px) { .touch { display: none; } }
+
+  /* ===== clean dark site footer (matches family) ===== */
+  .site-footer { background: var(--bg); padding: 44px 24px 40px; text-align: center; }
+  .sf-wrap { max-width: 600px; margin: 0 auto; }
+  .sf-rule { height: 1px; background: var(--accent); max-width: 760px; margin: 0 auto 30px; opacity: .9; }
+  .sf-tagline { font-size: 12px; color: var(--text); letter-spacing: 1px; line-height: 1.4; }
+  .sf-tagline s { color: var(--accent); opacity: .7; }
+  .sf-tagline .cl { color: var(--accent); }
+  .sf-credit { font-size: 12px; color: var(--accent); letter-spacing: .4px; margin-top: 3px; line-height: 1.4; }
+  .sf-credit .cl-mark { width: 12px; height: 12px; vertical-align: -2px; margin-right: 2px; }
+  .sf-credit a { color: var(--text); font-weight: 700; text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s; }
+  .sf-credit a:hover { border-bottom-color: var(--text); }
+  .sf-privacy { display: inline-block; margin: 21px 0 20px; font-size: 11px; letter-spacing: 3px; color: var(--text); text-decoration: none; font-weight: 700; }
+  .sf-privacy:hover { color: var(--accent); }
+  .sf-social { display: flex; gap: 26px; justify-content: center; }
+  .sf-social a { color: var(--accent); display: inline-flex; opacity: .85; transition: opacity .15s ease, transform .15s ease; }
+  .sf-social a:hover { opacity: 1; transform: translateY(-2px); }
+  .sf-social svg { width: 18px; height: 18px; display: block; }
+  /* ===== rail man-page (tips + faq) ===== */
+  .rail-cat { font-size: 10px; letter-spacing: 2px; color: var(--accent); margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .rail-cat-first { margin-top: 0; }
+  .rail-tips li b { color: var(--text); font-weight: 600; }
+  .rail details { border-bottom: 1px solid var(--border); }
+  .rail summary { cursor: pointer; padding: 11px 0; font-size: 11.5px; color: var(--text-dim); list-style: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; line-height: 1.4; transition: color .12s; }
+  .rail summary::-webkit-details-marker { display: none; }
+  .rail summary::after { content: "+"; color: var(--accent); flex-shrink: 0; font-size: 14px; }
+  .rail details[open] summary::after { content: "\2212"; }
+  .rail summary:hover, .rail details[open] summary { color: var(--text); }
+  .rail details p { font-size: 11px; color: #7c7c80; line-height: 1.65; padding: 0 0 12px; }
+  .rail details p a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<!-- crawlable content for search engines; visually hidden, does not affect the UI -->
+<div style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0">
+  <h1>mkgrid — a privacy-first Instagram grid planner</h1>
+  <p>mkgrid is a free, open-source Instagram grid planner that runs entirely in your browser. Plan and preview your Instagram feed before you post: drag in your photos, arrange the grid, crop each tile with pan and zoom, and span a single image across a full row for panorama or banner posts. mkgrid uses Instagram's real 3:4 thumbnail ratio, with 4:5 and 1:1 options for legacy content. Export post-ready images as a ZIP, or export your entire profile as one image to preview the whole feed. Everything happens locally on your device — no upload, no account, no cookies, no analytics, and no tracking. Your photos never leave your browser. mkgrid is a single static HTML file you can read, fork, and self-host under the MIT license.</p>
+  <h2>Free Instagram feed planner — no login, no upload</h2>
+  <p>Plan your Instagram layout, preview your grid aesthetic, sequence upcoming posts, and design a puzzle or panorama feed. A privacy-first alternative to subscription grid-planning apps.</p>
+</div>
+<div class="app">
+  <div class="header">
+    <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-46.8 -770.4 4381.2 980.4" aria-label="mkgrid"><g transform="scale(1,-1)"><path d="M0.0,568.8 L237.6,360.0 L0.0,151.2" fill="none" stroke="var(--accent,#ff4438)" stroke-width="93.6" stroke-linecap="round" stroke-linejoin="round"/><path transform="translate(525.6,0)" fill="var(--text,#ececed)" d="M157 0H41V510H129L139 471H142L180 510H291L305 446H312L373 510H508L559 381V0H443V391H413L358 333V0H243V391H213L157 333Z"/><path transform="translate(1125.6,0)" fill="var(--text,#ececed)" d="M517 418 364 293 560 92V0H468L269 214L187 147V2H60V700H187V308L424 510H517Z"/><path transform="translate(1725.6,0)" fill="var(--text,#ececed)" d="M172 10 50 135V385L172 510H380L419 476H422L427 510H540V-210H81V-84H419V49H414L371 10ZM174 332V187L226 136H349L419 187V332L354 384H226Z"/><path transform="translate(2325.6,0)" fill="var(--text,#ececed)" d="M499 0H40V127H156V383H40V510H251V453H257L332 510H560V383H371L282 315V127H499Z"/><path transform="translate(2925.6,0)" fill="var(--text,#ececed)" d="M555 0H45V127H255V383H55V510H384V127H555ZM379 584H241V720H379Z"/><path transform="translate(3525.6,0)" fill="var(--text,#ececed)" d="M371 0H172L50 125V385L172 510H374L415 475H418L414 542V700H540V0H434L433 49H428ZM174 177 226 126H354L419 177V332L349 384H226L174 332Z"/><rect class="cur" x="4240.8" y="-50.4" width="93.6" height="820.8" fill="var(--accent,#ff4438)"/></g></svg></div>
+    <div class="controls">
+      <div class="seg" id="ratioSeg" title="Grid thumbnail ratio">
+        <button data-rw="3" data-rh="4" class="active">3:4</button>
+        <button data-rw="4" data-rh="5">4:5</button>
+        <button data-rw="1" data-rh="1">1:1</button>
+      </div>
+      <div class="seg" id="rowsSeg">
+        <button data-rows="3" class="active">3×3</button>
+        <button data-rows="6">3×6</button>
+        <button data-rows="9">3×9</button>
+      </div>
+      <button id="undoBtn" class="btn btn-icon" title="Undo">↩</button>
+      <button id="redoBtn" class="btn btn-icon" title="Redo">↪</button>
+      <button id="clearBtn" class="btn">CLEAR</button>
+      <button id="exportBtn" class="btn btn-accent" disabled>↓ EXPORT</button>
+    </div>
+  </div>
+
+  <div class="shell">
+  <div class="main">
+    <div class="sidebar">
+      <div class="dropzone" id="dropzone">
+        <strong>+ ADD PHOTOS</strong>
+        <span>drag in or click · stays on your device</span>
+        <input type="file" id="fileInput" multiple accept="image/*" hidden>
+      </div>
+      <div class="tray" id="tray"><div class="tray-empty">no photos yet</div></div>
+    </div>
+
+    <div class="stage">
+      <div class="phone">
+        <div class="phone-bar">
+          <span class="pb-handle" contenteditable="true" data-f="handle" spellcheck="false">your_handle</span>
+          <span class="dots">☰</span>
+        </div>
+
+        <div class="prof">
+          <div class="prof-row">
+            <div class="avatar" id="avatar" title="Upload profile photo">
+              <img id="avatarImg" alt="">
+              <span class="avatar-plus">+</span>
+            </div>
+            <div class="stats">
+              <div class="stat"><b contenteditable="true" data-f="posts" spellcheck="false">0</b><span>posts</span></div>
+              <div class="stat"><b contenteditable="true" data-f="followers" spellcheck="false">0</b><span>followers</span></div>
+              <div class="stat"><b contenteditable="true" data-f="following" spellcheck="false">0</b><span>following</span></div>
+            </div>
+          </div>
+          <div class="prof-name" contenteditable="true" data-f="name" spellcheck="false">Your Name</div>
+          <div class="prof-bio" contenteditable="true" data-f="bio" spellcheck="false">Tap to write your bio ✍</div>
+          <a class="prof-link" contenteditable="true" data-f="link" spellcheck="false">yourlink.com</a>
+
+          <div class="hl-wrap" id="hlWrap">
+            <button class="hl-toggle" id="hlToggle">+ highlights</button>
+            <div class="hl-row" id="hlRow" hidden></div>
+          </div>
+        </div>
+
+        <div class="tabbar"><span class="tab active">▦</span><span class="tab">▶</span><span class="tab">⊡</span></div>
+
+        <div class="grid" id="grid"></div>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" hidden>
+      <input type="file" id="hlInput" accept="image/*" hidden>
+
+    </div>
+    <aside class="rail">
+      <div class="rail-block">
+        <div class="rail-h">ZOOM</div>
+        <div class="zoom">
+          <span>OUT</span>
+          <input type="range" id="zoomRange" min="0" max="500" value="100" disabled>
+          <span>IN</span>
+        </div>
+      </div>
+      <div class="rail-block rail-help">
+        <div class="rail-cat rail-cat-first">TIPS</div>
+        <ul class="rail-tips">
+          <li><b>Span a photo like a collage</b> — tap <b>SPAN</b> on a row to stretch one image across all three tiles.</li>
+          <li><b>Export your work</b> — hit <b>EXPORT</b> to save every tile as a ready-to-post image, or your whole feed as one picture.</li>
+          <li><b>Rearrange</b> — grab a tile's ⠿ handle and drag it to a new spot.</li>
+          <li><b>Reframe a photo</b> — drag inside it to move the crop; scroll or pinch to zoom.</li>
+          <li><b>Stays private</b> — your photos never leave your device. Nothing is uploaded.</li>
+        </ul>
+        <div class="rail-cat">FAQ</div>
+        <details><summary>Do my photos get uploaded?</summary><p>No. mkgrid runs entirely in your browser — there's no server to upload to. Your images never leave your device.</p></details>
+        <details><summary>Do I need an account?</summary><p>No signup, no login, no email. Open it and start planning.</p></details>
+        <details><summary>Is it really free?</summary><p>Yes — free and open-source (MIT). No ads, no upsells, nothing behind a paywall.</p></details>
+        <details><summary>Where is my work saved?</summary><p>Locally, in your browser — on your device, never a server. Clearing your browser data removes it.</p></details>
+        <details><summary>Why a 3:4 grid?</summary><p>Instagram now crops grid thumbnails to 3:4, so mkgrid matches it by default. Switch to 4:5 or 1:1 anytime.</p></details>
+        <details><summary>Is it open source?</summary><p>Yes — one readable file. <a href="https://github.com/chrisvrakas/mkgrid" target="_blank" rel="noopener">Read or fork it on GitHub ↗</a></p></details>
+      </div>
+    </aside>
+  </div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="sf-wrap">
+    <div class="sf-rule"></div>
+    <p class="sf-tagline">when everyone <s>copyrights</s>, <span class="cl">copyleft</span></p>
+    <p class="sf-credit"><svg class="cl-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="copyleft"><circle cx="12" cy="12" r="10"/><path d="M9.2 8.5 A4.5 4.5 0 1 1 9.2 15.5"/></svg> mkgrid.app — designed by <a href="https://chrisvrakas.com" target="_blank" rel="noopener">chris vrakas</a></p>
+    <a class="sf-privacy" href="privacy.html">PRIVACY_POLICY</a>
+    <div class="sf-social">
+      <a href="https://github.com/chrisvrakas/mkgrid" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.78 0 12.29c0 5.2 3.44 9.6 8.21 11.16.6.11.82-.26.82-.58 0-.28-.01-1.02-.02-2.01-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.08 1.84 1.23 1.84 1.23 1.07 1.81 2.81 1.29 3.5.99.11-.77.42-1.29.76-1.59-2.67-.3-5.47-1.31-5.47-5.84 0-1.29.47-2.34 1.24-3.17-.12-.31-.54-1.52.12-3.16 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.64.24 2.85.12 3.16.77.83 1.23 1.88 1.23 3.17 0 4.54-2.81 5.53-5.49 5.82.43.37.81 1.1.81 2.22 0 1.61-.01 2.9-.01 3.29 0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.29C24 5.78 18.63.5 12 .5z"/></svg></a>
+      <a href="https://instagram.com/mkgrid.app" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+    </div>
+  </div>
+</footer>
+
+<div class="footer" id="statusbar">
+    <div class="sb-zone sb-left">
+      <span class="sb-chev">❯</span><span class="sb-brand">mkgrid</span><span class="sb-sep">//</span><span class="sb-tag">private by default</span><span class="sb-cur">▮</span>
+    </div>
+    <div class="sb-zone sb-right">
+      <span id="saved" style="opacity:.35; color:var(--accent); transition:opacity .2s;">● saved</span><span class="sb-pipe">|</span><span class="sb-dom">mkgrid.app</span>
+    </div>
+  </div>
+
+<div class="modal" id="exportModal">
+  <div class="card">
+    <h3>Export</h3>
+    <div class="seg expmode" id="expMode">
+      <button data-m="images" class="active">▦ Post images</button>
+      <button data-m="feed">⛶ Whole feed</button>
+    </div>
+
+    <div id="paneImages">
+      <p class="sub">Individual tiles at <b id="expDims">1080×1440</b> — the files you upload to Instagram.</p>
+      <div class="opt">
+        <span>Format</span>
+        <label><input type="radio" name="fmt" value="png" checked> PNG</label>
+        <label><input type="radio" name="fmt" value="jpg"> JPG</label>
+        <span class="selctl">Select <button class="mini" id="selAll">all</button><button class="mini" id="selNone">none</button></span>
+      </div>
+      <div class="preview" id="preview"></div>
+      <div class="actions">
+        <button class="btn" id="exportCancel">Cancel</button>
+        <button class="btn btn-accent" id="exportGo">Download</button>
+      </div>
+    </div>
+
+    <div id="paneFeed" hidden>
+      <p class="sub">The whole profile — avatar, bio, highlights, grid — as one image to hand a client.</p>
+      <div class="opt"><label><input type="checkbox" id="showOrder"> Show posting order <span style="color:#666">(① = post first, bottom-right)</span></label></div>
+      <div class="feed-preview" id="feedPreview"><div class="feed-loading">rendering…</div></div>
+      <div class="actions">
+        <button class="btn" id="exportCancel2">Cancel</button>
+        <button class="btn btn-accent" id="feedGo">Download PNG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="ghost"><img alt=""></div>
+<canvas id="canvas"></canvas>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ---------- state ---------- */
+let rows = 3, total = 9;
+let tiles = [];                 // null | { imgId, zoom, panX, panY, mode:'fill'|'fit' }
+let lib = [];                   // { id, name, src, w, h }
+let sel = new Set();
+let active = null;
+let RW = 3, RH = 4; const GAP = 2, ZMIN = 0, ZMAX = 5;
+let stageTile = 0;
+
+const grid = $('grid'), tray = $('tray'), fileInput = $('fileInput'), dropzone = $('dropzone');
+const zoomRange = $('zoomRange'), undoBtn = $('undoBtn'), redoBtn = $('redoBtn');
+const exportModal = $('exportModal'), preview = $('preview'), canvas = $('canvas');
+const ghost = $('ghost'), ghostImg = ghost.querySelector('img');
+
+/* ---------- persistence (IndexedDB, single board) ---------- */
+let db = null, ok = false;
+function openDB() {
+  return new Promise(res => {
+    let r; try { r = indexedDB.open('gridctrl_mvp', 1); } catch (e) { return res(null); }
+    r.onupgradeneeded = e => { const d = e.target.result; if (!d.objectStoreNames.contains('assets')) d.createObjectStore('assets', { keyPath: 'id' }); if (!d.objectStoreNames.contains('state')) d.createObjectStore('state', { keyPath: 'key' }); };
+    r.onsuccess = () => res(r.result); r.onerror = () => res(null);
+  });
+}
+const put = (s, v) => new Promise(res => { if (!db) return res(); try { const t = db.transaction(s, 'readwrite'); t.objectStore(s).put(v); t.oncomplete = res; t.onerror = res; } catch (e) { res(); } });
+const del = (s, k) => new Promise(res => { if (!db) return res(); try { const t = db.transaction(s, 'readwrite'); t.objectStore(s).delete(k); t.oncomplete = res; t.onerror = res; } catch (e) { res(); } });
+const all = s => new Promise(res => { if (!db) return res([]); try { const t = db.transaction(s, 'readonly'); const q = t.objectStore(s).getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => res([]); } catch (e) { res([]); } });
+let saveT = null;
+function save() { if (!ok) return; clearTimeout(saveT); saveT = setTimeout(() => { put('state', { key: 'layout', rows, RW, RH, tiles }); flashSaved(); }, 300); }
+function flashSaved() { const el = $('saved'); el.style.opacity = '1'; clearTimeout(flashSaved._t); flashSaved._t = setTimeout(() => el.style.opacity = '.35', 1100); }
+
+/* ---------- history ---------- */
+let hist = [], pos = -1;
+function snap() { return tiles.map(t => t ? { ...t } : null); }
+function commit() { hist = hist.slice(0, pos + 1); hist.push(snap()); if (hist.length > 60) hist.shift(); pos = hist.length - 1; updateHistUI(); save(); }
+function restore(s) { tiles = s.map(t => t ? { ...t } : null); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); }
+function undo() { if (pos > 0) { pos--; restore(hist[pos]); updateHistUI(); } }
+function redo() { if (pos < hist.length - 1) { pos++; restore(hist[pos]); updateHistUI(); } }
+function updateHistUI() { undoBtn.disabled = pos <= 0; redoBtn.disabled = pos >= hist.length - 1; }
+let histT = null; const debHist = () => { clearTimeout(histT); histT = setTimeout(commit, 350); };
+
+/* ---------- geometry (proven WYSIWYG: same math for tile, preview, export) ---------- */
+function dims() { if (stageTile) return { w: stageTile, h: stageTile * RH / RW }; const w = grid.clientWidth; const tw = (w && w > 50) ? (w - 2 * GAP) / 3 : 130; return { w: tw, h: tw * RH / RW }; }
+function scaleFor(t, contain, cover) { const z = t.z == null ? 1 : t.z; return z <= 1 ? contain + (cover - contain) * z : cover * z; }
+function place(t, a, sw, sh, gap) {
+  if (t.banner) {
+    const g = gap == null ? GAP : gap;
+    const bw = 3 * sw + 2 * g, bz = t.bz == null ? 1 : t.bz;
+    const s = (bw / a.w) * bz, w = a.w * s, h = a.h * s;
+    const left = -(t.banner.col * (sw + g)) + (bw - w) / 2 + (t.panX || 0) * bw;
+    const top = (sh - h) / 2 + (t.panY || 0) * sh;
+    return { w, h, left, top };
+  }
+  const contain = Math.min(sw / a.w, sh / a.h), cover = Math.max(sw / a.w, sh / a.h);
+  const s = scaleFor(t, contain, cover), w = a.w * s, h = a.h * s;
+  return { w, h, left: (sw - w) / 2 + t.panX * sw, top: (sh - h) / 2 + t.panY * sh };
+}
+/* banner transform is shared across its 3 slices */
+function clampBanner(t, a) {
+  const sw = 1, sh = RH / RW, bw = 3, bz = t.bz == null ? 1 : t.bz;
+  const s = (bw / a.w) * bz, w = a.w * s, h = a.h * s;
+  const exX = Math.max(0, (w - bw) / (2 * bw)), exY = Math.max(0, (h - sh) / (2 * sh));
+  t.panX = Math.min(exX, Math.max(-exX, t.panX || 0));
+  t.panY = Math.min(exY, Math.max(-exY, t.panY || 0));
+}
+function setBanner(row, patch) { const s = row * 3; for (let c = 0; c < 3; c++) { const t = tiles[s + c]; if (t && t.banner) { Object.assign(t, patch); const a = lib.find(x => x.id === t.imgId); if (a) clampBanner(t, a); } } }
+function refreshBannerRow(row) { const s = row * 3, d = dims(); for (let c = 0; c < 3; c++) { const cell = grid.children[s + c], t = tiles[s + c]; if (cell && t) { const a = lib.find(x => x.id === t.imgId), im = cell.querySelector('img'); if (a && im) applyImg(im, t, a, d); } } }
+function clampPan(t, a) {
+  const sw = 1, sh = RH / RW;
+  const contain = Math.min(sw / a.w, sh / a.h), cover = Math.max(sw / a.w, sh / a.h);
+  const s = scaleFor(t, contain, cover), w = a.w * s, h = a.h * s;
+  const ex = Math.max(0, (w - sw) / (2 * sw)), ey = Math.max(0, (h - sh) / (2 * sh));
+  t.panX = Math.min(ex, Math.max(-ex, t.panX));
+  t.panY = Math.min(ey, Math.max(-ey, t.panY));
+}
+function applyImg(img, t, a, d) { const p = place(t, a, d.w, d.h, GAP); img.style.width = p.w + 'px'; img.style.height = p.h + 'px'; img.style.left = p.left + 'px'; img.style.top = p.top + 'px'; }
+
+/* ---------- size the grid to fill the viewport — the grid is the product ---------- */
+function fitStage() {
+  const phone = document.querySelector('.phone');
+  if (window.innerWidth <= 820) { phone.style.width = ''; stageTile = 0; grid.style.width = ''; return; }
+  const stage = document.querySelector('.stage');
+  const availW = stage.clientWidth - 24, availH = stage.clientHeight - 40;
+  // device-like width that grows with the viewport, so the rich profile fills the space
+  const w = Math.max(360, Math.min(availW - 8, availH * 0.82, 900));
+  phone.style.width = Math.floor(w) + 'px';
+  stageTile = 0; grid.style.width = '';   // grid fills the phone via 1fr; dims() reads clientWidth
+}
+
+/* ---------- render ---------- */
+function render() {
+  fitStage();
+  const d = dims();
+  grid.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const t = tiles[i];
+    const cell = document.createElement('div'); cell.className = 'cell'; cell.dataset.i = i;
+    const img = document.createElement('img');
+    const plus = document.createElement('div'); plus.className = 'plus'; plus.textContent = '+';
+    const grip = document.createElement('div'); grip.className = 'grip'; grip.textContent = '⠿';
+    const check = document.createElement('div'); check.className = 'check'; check.innerHTML = '<svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>';
+    const tools = document.createElement('div'); tools.className = 'tools';
+    cell.append(img, plus, grip, check, tools);
+
+    if (t && t.imgId) {
+      const a = lib.find(x => x.id === t.imgId);
+      if (a) {
+        cell.classList.add('has');
+        img.src = a.src; applyImg(img, t, a, d); plus.style.display = 'none';
+        if (t.banner) {
+          cell.classList.add('banner');
+          const rm = mkBtn('✕', () => { removeBannerRow(t.banner.row); if (active != null && active >= t.banner.row * 3 && active < t.banner.row * 3 + 3) active = null; render(); updateExportUI(); syncZoom(); commit(); });
+          tools.append(rm);
+          check.addEventListener('click', e => { e.stopPropagation(); toggleSel(i); });
+        } else {
+          const rm = mkBtn('✕', () => { tiles[i] = null; sel.delete(i); if (active === i) active = null; render(); updateExportUI(); syncZoom(); commit(); });
+          tools.append(rm);
+          if (i % 3 === 0 && i + 2 < total) {
+            const sp = mkBtn('⟐ SPAN', () => spanRow(Math.floor(i / 3), t.imgId)); sp.classList.add('span-btn');
+            tools.append(sp);
+          }
+          check.addEventListener('click', e => { e.stopPropagation(); toggleSel(i); });
+          wireGrip(grip, i);
+        }
+      } else { tiles[i] = null; img.style.display = 'none'; }
+    } else { img.style.display = 'none'; }
+
+    if (sel.has(i)) cell.classList.add('sel');
+    if (active === i) cell.classList.add('active', 'focus');
+    wireCell(cell, i);
+    grid.appendChild(cell);
+  }
+}
+function mkBtn(label, fn) { const b = document.createElement('button'); b.textContent = label; b.addEventListener('click', e => { e.stopPropagation(); fn(); }); return b; }
+
+function toggleSel(i) { if (!tiles[i]) return; sel.has(i) ? sel.delete(i) : sel.add(i); const c = grid.children[i]; if (c) c.classList.toggle('sel', sel.has(i)); updateExportUI(); }
+function setActive(i) {
+  if (active === i) return; const prev = active; active = i;
+  [prev, i].forEach(k => { if (k == null) return; const c = grid.children[k]; if (c) { c.classList.toggle('active', k === i); c.classList.toggle('focus', k === i); } });
+  syncZoom();
+}
+
+/* ---------- pan + pinch + wheel-zoom ---------- */
+const g = { mode: null, i: null, pts: new Map(), pX: 0, pY: 0, z: 1, dist: 0, sx: 0, sy: 0, moved: false };
+const distp = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+function wireCell(cell, i) {
+  cell.addEventListener('pointerdown', e => {
+    if (e.target.closest('.grip, .check, .tools')) return;
+    const t = tiles[i];
+    if (!t) { setActive(i); return; }
+    const touch = e.pointerType !== 'mouse';
+    g.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (t.banner) {
+      setActive(i);
+      if (g.pts.size === 2 && g.i === i) { const p = [...g.pts.values()]; g.mode = 'bpinch'; g.dist = distp(p[0], p[1]); g.z = t.bz == null ? 1 : t.bz; g.row = t.banner.row; try { cell.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); return; }
+      g.i = i;
+      if (!touch || active === i) { g.mode = 'bpan'; g.pX = t.panX || 0; g.pY = t.panY || 0; g.sx = e.clientX; g.sy = e.clientY; g.moved = false; g.row = t.banner.row; try { cell.setPointerCapture(e.pointerId); } catch (_) {} }
+      else g.mode = 'tap';
+      return;
+    }
+    if (g.pts.size === 2 && g.i === i) {
+      const p = [...g.pts.values()]; g.mode = 'pinch'; g.dist = distp(p[0], p[1]); g.z = t.z == null ? 1 : t.z;
+      try { cell.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); return;
+    }
+    g.i = i; setActive(i);
+    if (!touch || active === i) { g.mode = 'pan'; g.pX = t.panX; g.pY = t.panY; g.sx = e.clientX; g.sy = e.clientY; g.moved = false; try { cell.setPointerCapture(e.pointerId); } catch (_) {} }
+    else { g.mode = 'tap'; }
+  });
+  cell.addEventListener('pointermove', e => {
+    if (g.i !== i) return;
+    if (g.pts.has(e.pointerId)) g.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const t = tiles[i]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return; const d = dims();
+    if (g.mode === 'bpinch' && g.pts.size >= 2) {
+      const p = [...g.pts.values()]; const bz = clamp(g.z * distp(p[0], p[1]) / (g.dist || 1), 1, ZMAX);
+      setBanner(g.row, { bz }); refreshBannerRow(g.row); syncZoom(); e.preventDefault();
+    } else if (g.mode === 'bpan') {
+      const bwpx = 3 * d.w + 2 * GAP, dx = e.clientX - g.sx, dy = e.clientY - g.sy;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) g.moved = true;
+      setBanner(g.row, { panX: g.pX + dx / bwpx, panY: g.pY + dy / d.h }); refreshBannerRow(g.row); e.preventDefault();
+    } else if (g.mode === 'pinch' && g.pts.size >= 2) {
+      const p = [...g.pts.values()]; t.z = clamp(g.z * distp(p[0], p[1]) / (g.dist || 1), ZMIN, ZMAX);
+      clampPan(t, a); const im = cell.querySelector('img'); if (im) applyImg(im, t, a, d); syncZoom(); e.preventDefault();
+    } else if (g.mode === 'pan') {
+      const dx = e.clientX - g.sx, dy = e.clientY - g.sy;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) g.moved = true;
+      t.panX = g.pX + dx / d.w; t.panY = g.pY + dy / d.h; clampPan(t, a);
+      const im = cell.querySelector('img'); if (im) applyImg(im, t, a, d); e.preventDefault();
+    }
+  });
+  const end = e => {
+    if (g.i !== i) return;
+    g.pts.delete(e.pointerId);
+    if ((g.mode === 'pan' || g.mode === 'bpan') && g.moved) commit();
+    if (g.pts.size === 0) { g.mode = null; g.i = null; }
+    else if (g.mode === 'pinch' && g.pts.size < 2) { commit(); const p = [...g.pts.values()][0]; g.mode = 'pan'; g.sx = p.x; g.sy = p.y; const t = tiles[i]; if (t) { g.pX = t.panX; g.pY = t.panY; } }
+  };
+  cell.addEventListener('pointerup', end);
+  cell.addEventListener('pointercancel', end);
+
+  // SCROLL TO ZOOM — the bit that went missing. passive:false so we can preventDefault.
+  cell.addEventListener('wheel', e => {
+    const t = tiles[i]; if (!t) return;
+    e.preventDefault();
+    const a = lib.find(x => x.id === t.imgId); if (!a) return;
+    if (t.banner) { setBanner(t.banner.row, { bz: clamp((t.bz == null ? 1 : t.bz) + (e.deltaY < 0 ? 0.08 : -0.08), 1, ZMAX) }); setActive(i); refreshBannerRow(t.banner.row); syncZoom(); debHist(); return; }
+    t.z = clamp((t.z == null ? 1 : t.z) + (e.deltaY < 0 ? 0.08 : -0.08), ZMIN, ZMAX);
+    clampPan(t, a); setActive(i);
+    const im = cell.querySelector('img'); if (im) applyImg(im, t, a, dims());
+    syncZoom(); debHist();
+  }, { passive: false });
+}
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/* ---------- reorder (grip) + tray drag, via pointer events so touch works ---------- */
+let drag = null;
+function showGhost(src) { ghostImg.src = src; ghost.style.display = 'block'; }
+function moveGhost(x, y) { ghost.style.left = (x - 38) + 'px'; ghost.style.top = (y - 50) + 'px'; }
+function cellAt(x, y) { const k = grid.children; for (let i = 0; i < k.length; i++) { const r = k[i].getBoundingClientRect(); if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return i; } return -1; }
+function clearDrop() { [...grid.children].forEach(c => c.classList.remove('drop')); }
+function hintDrop(i) { clearDrop(); if (i >= 0) grid.children[i].classList.add('drop'); }
+
+function wireGrip(grip, i) {
+  grip.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation();
+    const t = tiles[i]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
+    drag = { kind: 'cell', src: i, id: e.pointerId };
+    showGhost(a.src); moveGhost(e.clientX, e.clientY);
+    try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  grip.addEventListener('pointermove', e => { if (!drag || drag.id !== e.pointerId) return; e.preventDefault(); moveGhost(e.clientX, e.clientY); hintDrop(cellAt(e.clientX, e.clientY)); });
+  const fin = e => { if (!drag || drag.id !== e.pointerId) return; const tgt = cellAt(e.clientX, e.clientY); ghost.style.display = 'none'; clearDrop(); if (tgt >= 0 && tgt !== drag.src) { const tmp = tiles[drag.src]; tiles[drag.src] = tiles[tgt]; tiles[tgt] = tmp; normalizeBanners(); sel.clear(); render(); updateExportUI(); commit(); } drag = null; };
+  grip.addEventListener('pointerup', fin); grip.addEventListener('pointercancel', fin);
+}
+function wireChip(el, a) {
+  el.addEventListener('pointerdown', e => {
+    if (e.target.closest('.del')) return;
+    e.preventDefault();
+    drag = { kind: 'tray', id: e.pointerId, imgId: a.id };
+    showGhost(a.src); moveGhost(e.clientX, e.clientY); el.classList.add('dragging');
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  el.addEventListener('pointermove', e => { if (!drag || drag.id !== e.pointerId) return; e.preventDefault(); moveGhost(e.clientX, e.clientY); hintDrop(cellAt(e.clientX, e.clientY)); });
+  const fin = e => { if (!drag || drag.id !== e.pointerId) return; const tgt = cellAt(e.clientX, e.clientY); ghost.style.display = 'none'; clearDrop(); el.classList.remove('dragging'); if (tgt >= 0) placeAsset(tgt, drag.imgId); drag = null; };
+  el.addEventListener('pointerup', fin); el.addEventListener('pointercancel', fin);
+}
+function placeAsset(i, imgId) { tiles[i] = { imgId, z: 1, panX: 0, panY: 0 }; normalizeBanners(); sel.delete(i); active = i; render(); updateExportUI(); syncZoom(); commit(); }
+
+/* ---------- assets ---------- */
+/* shrink oversized imports before storing — keeps IndexedDB lean.
+   PNGs keep alpha; everything else re-encodes to JPEG. Only kicks in above maxSide. */
+function downscale(dataURL, maxSide, mime) {
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => {
+      const big = Math.max(im.width, im.height);
+      if (big <= maxSide) { res({ src: dataURL, w: im.width, h: im.height }); return; }
+      const sc = maxSide / big, w = Math.round(im.width * sc), h = Math.round(im.height * sc);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(im, 0, 0, w, h);
+      const png = (mime || '').includes('png');
+      try { res({ src: c.toDataURL(png ? 'image/png' : 'image/jpeg', png ? undefined : 0.9), w, h }); }
+      catch (e) { res({ src: dataURL, w: im.width, h: im.height }); }
+    };
+    im.onerror = () => res({ src: dataURL, w: 0, h: 0 });
+    im.src = dataURL;
+  });
+}
+function addFile(file) {
+  if (!file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = async e => {
+    const ds = await downscale(e.target.result, 2400, file.type);   // generous: stays crisp at 1080 export even when zoomed
+    const id = (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random());
+    const a = { id, name: file.name, src: ds.src, w: ds.w, h: ds.h }; lib.push(a); put('assets', a); renderTray();
+  };
+  r.readAsDataURL(file);
+}
+function renderTray() {
+  tray.innerHTML = '';
+  if (!lib.length) { tray.innerHTML = '<div class="tray-empty">no photos yet</div>'; return; }
+  lib.forEach(a => {
+    const el = document.createElement('div'); el.className = 'chip';
+    const img = document.createElement('img'); img.src = a.src;
+    const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = a.name.length > 22 ? a.name.slice(0, 19) + '…' : a.name;
+    const x = document.createElement('button'); x.className = 'del'; x.textContent = '✕';
+    x.addEventListener('click', e => { e.stopPropagation(); lib = lib.filter(l => l.id !== a.id); del('assets', a.id); let touched = false; for (let j = 0; j < tiles.length; j++) if (tiles[j] && tiles[j].imgId === a.id) { tiles[j] = null; sel.delete(j); touched = true; } if (touched) normalizeBanners(); render(); renderTray(); updateExportUI(); if (touched) commit(); });
+    el.append(img, nm, x); wireChip(el, a); tray.appendChild(el);
+  });
+}
+
+/* ---------- zoom ui ---------- */
+function syncZoom() { const t = active != null ? tiles[active] : null; const on = !!t; zoomRange.disabled = !on; zoomRange.value = on ? Math.round((t.banner ? (t.bz == null ? 1 : t.bz) : (t.z == null ? 1 : t.z)) * 100) : 100; }
+zoomRange.addEventListener('input', e => {
+  if (active == null) return; const t = tiles[active]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
+  if (t.banner) { setBanner(t.banner.row, { bz: clamp(parseInt(e.target.value) / 100, 1, ZMAX) }); refreshBannerRow(t.banner.row); debHist(); return; }
+  t.z = clamp(parseInt(e.target.value) / 100, ZMIN, ZMAX); clampPan(t, a);
+  const c = grid.children[active]; if (c) { const im = c.querySelector('img'); if (im) applyImg(im, t, a, dims()); }
+  debHist();
+});
+
+/* ---------- export ---------- */
+function filled() { return tiles.map((t, i) => t ? i : -1).filter(i => i >= 0); }
+function exportSize() { return { W: 1080, H: Math.round(1080 * RH / RW) }; }
+function exportList() { return sel.size ? [...sel].sort((a, b) => a - b) : filled(); }
+function selList() { return [...sel].sort((a, b) => a - b); }   // exact selection (modal)
+function updateExportUI() { const n = exportList().length; const has = filled().length > 0; $('exportBtn').disabled = !has; $('exportBtn').textContent = sel.size ? `↓ EXPORT (${sel.size})` : (has ? `↓ EXPORT ALL (${n})` : '↓ EXPORT'); }
+
+function openExportPreview() {
+  preview.innerHTML = '';
+  const list = selList();
+  if (!list.length) { preview.innerHTML = '<div class="pv-empty">Nothing selected — hit <b>all</b>, or tick tiles in the grid.</div>'; return; }
+  const PW = 120, PH = PW * RH / RW;
+  list.forEach(i => {
+    const t = tiles[i]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
+    const cell = document.createElement('div'); cell.className = 'pv';
+    const img = document.createElement('img'); img.src = a.src; const p = place(t, a, PW, PH, GAP);
+    img.style.width = p.w + 'px'; img.style.height = p.h + 'px'; img.style.left = p.left + 'px'; img.style.top = p.top + 'px';
+    cell.appendChild(img); preview.appendChild(cell);
+  });
+}
+function openExport() {
+  const es = exportSize(); $('expDims').textContent = es.W + '×' + es.H;
+  if (sel.size === 0) filled().forEach(i => sel.add(i));   // default to everything selected
+  setExportMode('images');
+  refreshSelectionUI();
+  exportModal.classList.add('open');
+}
+const cache = {};
+function loadImg(src) { return cache[src] ? Promise.resolve(cache[src]) : new Promise((res, rej) => { const im = new Image(); im.onload = () => { cache[src] = im; res(im); }; im.onerror = rej; im.src = src; }); }
+function selectedFmt() { return (document.querySelector('input[name=fmt]:checked') || {}).value || 'png'; }
+async function renderTileBlob(i, fmt) {
+  const t = tiles[i]; if (!t) return null;
+  const a = lib.find(x => x.id === t.imgId); if (!a) return null;
+  const W = 1080, H = Math.round(1080 * RH / RW);
+  canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const im = await loadImg(a.src); const p = place(t, a, W, H, t.banner ? 0 : GAP);
+  ctx.drawImage(im, p.left, p.top, p.w, p.h);
+  return await new Promise(r => canvas.toBlob(r, fmt === 'jpg' ? 'image/jpeg' : 'image/png', fmt === 'jpg' ? 0.92 : undefined));
+}
+function dl(blob, name) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1500); }
+async function downloadSingle() {
+  const fmt = selectedFmt(), list = selList(); if (!list.length) return;
+  const i = list[0], blob = await renderTileBlob(i, fmt); if (!blob) return;
+  dl(blob, `grid_${String(i + 1).padStart(2, '0')}.${fmt === 'jpg' ? 'jpg' : 'png'}`);
+}
+async function exportZip() {
+  const fmt = selectedFmt(), ext = fmt === 'jpg' ? 'jpg' : 'png', files = [];
+  for (const i of selList()) { const blob = await renderTileBlob(i, fmt); if (!blob) continue; files.push({ name: `grid_${String(i + 1).padStart(2, '0')}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()) }); }
+  if (!files.length) return;
+  dl(new Blob([buildZip(files)], { type: 'application/zip' }), `${(profile.handle || 'feed').replace(/[^\w.-]/g, '_')}_tiles.zip`);
+}
+/* minimal STORED zip (PNG/JPG already compressed) — one file, no extra prompts */
+function buildZip(files) {
+  const enc = new TextEncoder();
+  const tbl = buildZip._t || (buildZip._t = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })());
+  const crc32 = u => { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = tbl[(c ^ u[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+  const parts = [], central = []; let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name), data = f.data, crc = crc32(data);
+    const lh = new Uint8Array(30 + name.length), dv = new DataView(lh.buffer);
+    dv.setUint32(0, 0x04034b50, true); dv.setUint16(4, 20, true); dv.setUint32(14, crc, true);
+    dv.setUint32(18, data.length, true); dv.setUint32(22, data.length, true); dv.setUint16(26, name.length, true); lh.set(name, 30);
+    parts.push(lh, data);
+    const ch = new Uint8Array(46 + name.length), cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+    cv.setUint32(16, crc, true); cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true);
+    cv.setUint16(28, name.length, true); cv.setUint32(42, offset, true); ch.set(name, 46);
+    central.push(ch); offset += lh.length + data.length;
+  }
+  let cd = 0; central.forEach(c => cd += c.length);
+  const end = new Uint8Array(22), ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cd, true); ev.setUint32(16, offset, true);
+  const all = [...parts, ...central, end]; let total = 0; all.forEach(p => total += p.length);
+  const out = new Uint8Array(total); let pos = 0; all.forEach(p => { out.set(p, pos); pos += p.length; });
+  return out;
+}
+
+/* ---------- grid size ---------- */
+function setRows(n) { rows = n; total = n * 3; const next = Array(total).fill(null); for (let i = 0; i < Math.min(tiles.length, total); i++) next[i] = tiles[i] || null; tiles = next; normalizeBanners(); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit(); }
+function setRatio(w, h) {
+  RW = w; RH = h;
+  document.documentElement.style.setProperty('--ratio', w + ' / ' + h);
+  tiles.forEach(t => { if (t && !t.banner) { const a = lib.find(x => x.id === t.imgId); if (a) clampPan(t, a); } });
+  render(); updateExportUI(); commit();
+}
+function spanRow(rowIdx, imgId) {
+  const start = rowIdx * 3;
+  if (start + 2 >= total) return;
+  for (let c = 0; c < 3; c++) { sel.delete(start + c); tiles[start + c] = { imgId, banner: { col: c, row: rowIdx }, bz: 1, panX: 0, panY: 0 }; }
+  active = start; render(); updateExportUI(); syncZoom(); commit();
+}
+function removeBannerRow(rowIdx) {
+  const s = rowIdx * 3;
+  for (let c = 0; c < 3; c++) if (tiles[s + c] && tiles[s + c].banner) { tiles[s + c] = null; sel.delete(s + c); }
+}
+/* any banner row split by a move/drop degrades gracefully to normal tiles */
+function normalizeBanners() {
+  for (let r = 0; r < rows; r++) {
+    const s = r * 3, a = tiles[s], b = tiles[s + 1], c = tiles[s + 2];
+    const okRow = a && a.banner && b && b.banner && c && c.banner &&
+      a.banner.row === r && b.banner.row === r && c.banner.row === r &&
+      a.imgId === b.imgId && b.imgId === c.imgId &&
+      a.banner.col === 0 && b.banner.col === 1 && c.banner.col === 2;
+    [s, s + 1, s + 2].forEach(k => { if (tiles[k] && tiles[k].banner && !okRow) tiles[k] = { imgId: tiles[k].imgId, z: 1, panX: 0, panY: 0 }; });
+  }
+}
+
+/* ---------- events ---------- */
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => { Array.from(e.target.files).forEach(addFile); fileInput.value = ''; });
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('over'); if (e.dataTransfer.files.length) Array.from(e.dataTransfer.files).forEach(addFile); });
+window.addEventListener('dragover', e => { if (e.target === document.body) e.preventDefault(); });
+window.addEventListener('drop', e => { if (e.target === document.body) e.preventDefault(); });
+
+$('clearBtn').addEventListener('click', () => { if (confirm('Clear the grid? Your photos stay in the tray.')) { tiles = Array(total).fill(null); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit(); } });
+$('exportBtn').addEventListener('click', () => { if (filled().length) openExport(); });
+function setExportMode(m) {
+  $('expMode').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.m === m));
+  $('paneImages').hidden = m !== 'images';
+  $('paneFeed').hidden = m !== 'feed';
+  if (m === 'feed') showFeedPreview();
+}
+$('expMode').querySelectorAll('button').forEach(b => b.addEventListener('click', () => setExportMode(b.dataset.m)));
+$('selAll').addEventListener('click', () => { filled().forEach(i => sel.add(i)); refreshSelectionUI(); });
+$('selNone').addEventListener('click', () => { sel.clear(); refreshSelectionUI(); });
+function refreshSelectionUI() {
+  [...grid.children].forEach((c, i) => c.classList.toggle('sel', sel.has(i)));
+  updateExportUI();
+  openExportPreview();
+  const f = filled();
+  const allOn = f.length > 0 && f.every(i => sel.has(i));
+  $('selAll').classList.toggle('active', allOn);
+  $('selNone').classList.toggle('active', sel.size === 0);
+  const go = $('exportGo');
+  go.disabled = sel.size === 0;
+  go.textContent = sel.size > 1 ? `Download ZIP (${sel.size})` : 'Download';
+}
+$('exportCancel').addEventListener('click', () => exportModal.classList.remove('open'));
+$('exportCancel2').addEventListener('click', () => exportModal.classList.remove('open'));
+$('exportGo').addEventListener('click', async () => { const n = selList().length; if (!n) return; if (n === 1) await downloadSingle(); else await exportZip(); exportModal.classList.remove('open'); });
+$('feedGo').addEventListener('click', async () => { await downloadProfile(); exportModal.classList.remove('open'); });
+$('showOrder').addEventListener('change', showFeedPreview);
+exportModal.addEventListener('click', e => { if (e.target === exportModal) exportModal.classList.remove('open'); });
+undoBtn.addEventListener('click', undo); redoBtn.addEventListener('click', redo);
+$('rowsSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('rowsSeg').querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active'); setRows(parseInt(b.dataset.rows)); }));
+$('ratioSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('ratioSeg').querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active'); setRatio(parseInt(b.dataset.rw), parseInt(b.dataset.rh)); }));
+window.addEventListener('keydown', e => { const m = e.ctrlKey || e.metaKey; if (m && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); } else if (m && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); } });
+document.querySelector('.stage').addEventListener('pointerdown', e => { if (e.target.classList.contains('stage') || e.target.classList.contains('phone') || e.target.classList.contains('grid')) setActive(null); });
+let rt = null; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 120); });
+
+/* ---------- export the whole profile as one PNG (hand-drawn, no libs) ---------- */
+function wrapLines(ctx, text, maxW) {
+  const out = [];
+  (text || '').split('\n').forEach(para => {
+    const words = para.split(' '); let line = '';
+    words.forEach(w => {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && line) { out.push(line); line = w; }
+      else line = test;
+    });
+    out.push(line);
+  });
+  return out;
+}
+function roundRectPath(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+async function renderProfileCanvas() {
+  const W = 1080, pad = 56, FONT = "'SF Mono','JetBrains Mono',ui-monospace,monospace";
+  const gExp = 8;
+  const tileW = (W - 2 * pad - 2 * gExp) / 3, tileH = tileW * RH / RW;
+  const c = document.createElement('canvas');
+  const ctx = c.getContext('2d');
+
+  // ---- measure pass (bio wrap needs a font set) ----
+  c.width = W; c.height = 10;
+  ctx.font = `26px ${FONT}`;
+  const bioLines = wrapLines(ctx, profile.bio, W - 2 * pad);
+
+  let y = pad;
+  y += 46;                       // handle bar
+  y += 28;                       // divider gap
+  const avatarTop = y, avD = 188;
+  y += avD + 30;                 // avatar/stats row
+  y += 38;                       // name
+  y += bioLines.length * 38 + 10;// bio
+  y += 38;                       // link
+  if (profile.hlOpen && profile.highlights.length) y += 24 + 150 + 30; // highlights
+  y += 30;                       // tab divider
+  const gridTop = y;
+  y += rows * tileH + (rows - 1) * gExp + pad;
+  const H = Math.ceil(y);
+
+  // ---- draw pass ----
+  c.height = H;
+  ctx.fillStyle = '#0c0c0d'; ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'alphabetic';
+
+  let yy = pad + 30;
+  // handle bar
+  ctx.fillStyle = '#ececed'; ctx.font = `bold 28px ${FONT}`; ctx.textAlign = 'left';
+  ctx.fillText(profile.handle || 'your_handle', pad, yy);
+  ctx.fillStyle = '#777'; ctx.textAlign = 'right'; ctx.fillText('☰', W - pad, yy);
+  yy += 22;
+  ctx.strokeStyle = '#242426'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, yy); ctx.lineTo(W - pad, yy); ctx.stroke();
+  yy += 28;
+
+  // avatar
+  const ax = pad, ay = yy, r = avD / 2;
+  ctx.save(); ctx.beginPath(); ctx.arc(ax + r, ay + r, r, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+  ctx.fillStyle = '#1c1c1e'; ctx.fillRect(ax, ay, avD, avD);
+  if (profile.avatar) { try { const im = await loadImg(profile.avatar); const s = Math.max(avD / im.width, avD / im.height); const w = im.width * s, h = im.height * s; ctx.drawImage(im, ax + (avD - w) / 2, ay + (avD - h) / 2, w, h); } catch (e) {} }
+  ctx.restore();
+  ctx.strokeStyle = '#ff4438'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(ax + r, ay + r, r, 0, Math.PI * 2); ctx.stroke();
+
+  // stats
+  const statsX = ax + avD + 30, statsW = W - pad - statsX, third = statsW / 3;
+  const stats = [['posts', profile.posts], ['followers', profile.followers], ['following', profile.following]];
+  stats.forEach((s, k) => {
+    const cx = statsX + third * k + third / 2;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ececed'; ctx.font = `bold 32px ${FONT}`; ctx.fillText(String(s[1] || '0'), cx, ay + r - 4);
+    ctx.fillStyle = '#888'; ctx.font = `22px ${FONT}`; ctx.fillText(s[0], cx, ay + r + 30);
+  });
+  yy = ay + avD + 30;
+
+  // name / bio / link
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ececed'; ctx.font = `bold 27px ${FONT}`; ctx.fillText(profile.name || '', pad, yy); yy += 30;
+  ctx.fillStyle = '#cfcfd2'; ctx.font = `26px ${FONT}`;
+  bioLines.forEach(ln => { ctx.fillText(ln, pad, yy); yy += 38; }); yy += 6;
+  ctx.fillStyle = '#5a9ade'; ctx.fillText(profile.link || '', pad, yy); yy += 30;
+
+  // highlights
+  if (profile.hlOpen && profile.highlights.length) {
+    yy += 20; const hd = 120; let hx = pad;
+    for (const h of profile.highlights) {
+      const cyc = yy + hd / 2;
+      ctx.save(); ctx.beginPath(); ctx.arc(hx + hd / 2, cyc, hd / 2, 0, Math.PI * 2); ctx.clip();
+      ctx.fillStyle = '#1c1c1e'; ctx.fillRect(hx, yy, hd, hd);
+      if (h.cover) { try { const im = await loadImg(h.cover); const s = Math.max(hd / im.width, hd / im.height); const w = im.width * s, ht = im.height * s; ctx.drawImage(im, hx + (hd - w) / 2, yy + (hd - ht) / 2, w, ht); } catch (e) {} }
+      ctx.restore();
+      ctx.strokeStyle = '#3a3a3d'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(hx + hd / 2, cyc, hd / 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#aaa'; ctx.font = `19px ${FONT}`; ctx.textAlign = 'center';
+      ctx.fillText((h.label || '').slice(0, 10), hx + hd / 2, yy + hd + 24);
+      hx += hd + 28; if (hx + hd > W - pad) break;
+    }
+    ctx.textAlign = 'left'; yy += hd + 30;
+  }
+
+  // tab divider
+  ctx.strokeStyle = '#242426'; ctx.beginPath(); ctx.moveTo(pad, yy); ctx.lineTo(W - pad, yy); ctx.stroke();
+  ctx.fillStyle = '#ececed'; ctx.font = `20px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('▦', W / 2, yy + 22); ctx.textAlign = 'left';
+
+  // grid
+  const showOrder = !!($('showOrder') && $('showOrder').checked);
+  const orderMap = {};
+  if (showOrder) { const f = filled(), k = f.length; f.forEach((idx, j) => orderMap[idx] = k - j); } // #1 = posted first = bottom-right-most
+  for (let i = 0; i < total; i++) {
+    const col = i % 3, row = Math.floor(i / 3);
+    const x = pad + col * (tileW + gExp), ty = gridTop + row * (tileH + gExp);
+    const t = tiles[i];
+    if (!t) { ctx.fillStyle = '#131314'; ctx.fillRect(x, ty, tileW, tileH); continue; }
+    const a = lib.find(z => z.id === t.imgId);
+    if (!a) { ctx.fillStyle = '#131314'; ctx.fillRect(x, ty, tileW, tileH); continue; }
+    let im; try { im = await loadImg(a.src); } catch (e) { continue; }
+    ctx.save(); ctx.beginPath(); ctx.rect(x, ty, tileW, tileH); ctx.clip();
+    ctx.fillStyle = '#000'; ctx.fillRect(x, ty, tileW, tileH);
+    const p = place(t, a, tileW, tileH, gExp);
+    ctx.drawImage(im, x + p.left, ty + p.top, p.w, p.h);
+    ctx.restore();
+    if (showOrder && orderMap[i]) {
+      const fs = Math.round(tileW * 0.16), label = String(orderMap[i]);
+      ctx.font = `bold ${fs}px ${FONT}`;
+      const tw = ctx.measureText(label).width, bw2 = tw + 22, bh2 = fs + 14, bx = x + 12, by = ty + 12;
+      ctx.fillStyle = 'rgba(0,0,0,0.66)'; roundRectPath(ctx, bx, by, bw2, bh2, 8); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, bx + 11, by + bh2 / 2 + 1);
+      ctx.textBaseline = 'alphabetic';
+    }
+  }
+
+  return c;
+}
+function downloadProfileCanvas(c) { c.toBlob(blob => { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${(profile.handle || 'profile').replace(/[^\w.-]/g, '_')}_profile.png`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1500); }, 'image/png'); }
+async function downloadProfile() { const c = await renderProfileCanvas(); downloadProfileCanvas(c); }
+async function showFeedPreview() {
+  const el = $('feedPreview'); el.innerHTML = '<div class="feed-loading">rendering…</div>';
+  const c = await renderProfileCanvas();
+  const img = new Image(); img.className = 'feed-img'; img.src = c.toDataURL('image/png');
+  el.innerHTML = ''; el.appendChild(img);
+}
+
+/* ---------- editable profile ---------- */
+let profile = { handle: 'your_handle', name: 'Your Name', bio: 'Tap to write your bio ✍', link: 'yourlink.com', posts: '0', followers: '0', following: '0', avatar: null, hlOpen: false, highlights: [] };
+let profSaveT = null;
+function saveProfile() { if (!ok) return; clearTimeout(profSaveT); profSaveT = setTimeout(() => { put('state', { key: 'profile', data: profile }); flashSaved(); }, 300); }
+const TEXT_FIELDS = ['handle', 'name', 'bio', 'link', 'posts', 'following', 'followers'];
+
+function wireProfile() {
+  document.querySelectorAll('[data-f]').forEach(el => {
+    const f = el.dataset.f;
+    el.addEventListener('blur', () => { profile[f] = el.innerText.replace(/\s+$/, ''); saveProfile(); });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' && f !== 'bio') { e.preventDefault(); el.blur(); } });
+  });
+  $('avatar').addEventListener('click', () => $('avatarInput').click());
+  $('avatarInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = async ev => { const ds = await downscale(ev.target.result, 800, file.type); profile.avatar = ds.src; applyProfile(); saveProfile(); }; r.readAsDataURL(file); $('avatarInput').value = ''; });
+  $('hlToggle').addEventListener('click', () => { profile.hlOpen = !profile.hlOpen; applyHighlights(); saveProfile(); });
+  $('hlInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file || !hlTarget) return; const r = new FileReader(); r.onload = async ev => { const ds = await downscale(ev.target.result, 600, file.type); const h = profile.highlights.find(x => x.id === hlTarget); if (h) { h.cover = ds.src; applyHighlights(); saveProfile(); } hlTarget = null; }; r.readAsDataURL(file); $('hlInput').value = ''; });
+}
+function applyProfile() {
+  TEXT_FIELDS.forEach(f => { const el = document.querySelector(`[data-f="${f}"]`); if (el && document.activeElement !== el) el.textContent = profile[f] || ''; });
+  const av = $('avatar'), im = $('avatarImg');
+  if (profile.avatar) { im.src = profile.avatar; av.classList.add('has'); } else { im.src = ''; av.classList.remove('has'); }
+  applyHighlights();
+}
+let hlTarget = null;
+function applyHighlights() {
+  const toggle = $('hlToggle'), row = $('hlRow');
+  toggle.classList.toggle('on', profile.hlOpen);
+  toggle.textContent = profile.hlOpen ? '− highlights' : '+ highlights';
+  row.hidden = !profile.hlOpen;
+  if (!profile.hlOpen) return;
+  row.innerHTML = '';
+  profile.highlights.forEach(h => {
+    const el = document.createElement('div'); el.className = 'hl';
+    const c = document.createElement('div'); c.className = 'hl-circle';
+    if (h.cover) { const i = document.createElement('img'); i.src = h.cover; c.appendChild(i); } else c.textContent = '+';
+    c.addEventListener('click', () => { hlTarget = h.id; $('hlInput').click(); });
+    const lab = document.createElement('div'); lab.className = 'hl-label'; lab.contentEditable = 'true'; lab.spellcheck = false; lab.textContent = h.label || 'name';
+    lab.addEventListener('blur', () => { h.label = lab.textContent.trim() || 'name'; saveProfile(); });
+    lab.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); lab.blur(); } });
+    const del = document.createElement('button'); del.className = 'hl-del'; del.textContent = '×';
+    del.addEventListener('click', () => { profile.highlights = profile.highlights.filter(x => x.id !== h.id); applyHighlights(); saveProfile(); });
+    el.append(c, lab, del); row.appendChild(el);
+  });
+  const add = document.createElement('div'); add.className = 'hl hl-add';
+  const ac = document.createElement('div'); ac.className = 'hl-circle'; ac.textContent = '+'; ac.title = 'Add highlight';
+  ac.addEventListener('click', () => { const id = (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + ''); profile.highlights.push({ id, label: 'name', cover: null }); applyHighlights(); saveProfile(); });
+  const al = document.createElement('div'); al.className = 'hl-label'; al.textContent = 'add';
+  add.append(ac, al); row.appendChild(add);
+}
+async function loadProfile() { if (!ok) return; const p = (await all('state')).find(s => s.key === 'profile'); if (p && p.data) profile = Object.assign(profile, p.data); }
+
+/* ---------- init ---------- */
+(async function () {
+  db = await openDB(); ok = !!db;
+  if (ok) {
+    const a = await all('assets'); if (a.length) lib = a;
+    const st = (await all('state')).find(s => s.key === 'layout');
+    if (st) { rows = st.rows || 3; total = rows * 3; if (st.RW && st.RH) { RW = st.RW; RH = st.RH; document.documentElement.style.setProperty('--ratio', RW + ' / ' + RH); } tiles = (st.tiles || []).map(t => t || null); while (tiles.length < total) tiles.push(null); const ids = new Set(lib.map(x => x.id)); tiles = tiles.map(t => { if (!t || !ids.has(t.imgId)) return null; if (!t.banner && t.z == null) t.z = 1; delete t.mode; delete t.zoom; return t; }); $('rowsSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.rows) === rows)); $('ratioSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.rw) === RW && parseInt(b.dataset.rh) === RH)); }
+  }
+  if (!tiles.length) tiles = Array(9).fill(null);
+  await loadProfile();
+  wireProfile();
+  applyProfile();
+  render(); renderTray(); updateExportUI(); syncZoom();
+  hist = []; pos = -1; commit();
+  requestAnimationFrame(render);   // correct sizing once the stage has real dimensions
+})();
+</script>
+</body>
+</html>

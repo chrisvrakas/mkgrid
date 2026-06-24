@@ -1,0 +1,5 @@
+# mkgrid — https://mkgrid.app
+User-agent: *
+Allow: /
+
+Sitemap: https://mkgrid.app/sitemap.xml
