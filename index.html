@@ -299,7 +299,8 @@
   .zoom input[type=range]::-moz-range-thumb { width: 15px; height: 15px; background: var(--accent); border: none; border-radius: 3px; cursor: pointer; }
 
   /* modal */
-  .exp-ios-hint { display: none; font-size: 10px; color: var(--text-dim); text-align: center; margin-top: 10px; line-height: 1.5; } background: rgba(0,0,0,.88); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; visibility: hidden; opacity: 0; transition: opacity .15s; }
+  .exp-ios-hint { display: none; font-size: 10px; color: var(--text-dim); text-align: center; margin-top: 10px; line-height: 1.5; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.88); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; visibility: hidden; opacity: 0; transition: opacity .15s; }
   .modal.open { visibility: visible; opacity: 1; }
   .card { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 26px; max-width: 540px; width: 100%; max-height: 86dvh; overflow-y: auto; }
   .card h3 { font-size: 15px; margin-bottom: 5px; }
@@ -343,6 +344,7 @@
     .controls .seg button { flex: 1; padding: 8px 4px; }
     #undoBtn, #redoBtn { flex: 1 1 auto; }
     #clearBtn { flex: 2 1 auto; }
+    #randomBtn { flex: 2 1 auto; }
     #exportBtn { flex: 3 1 100%; order: 9; }
     .sidebar { width: 100%; flex-direction: column; height: auto; border-right: none; border-bottom: 1px solid var(--border); align-items: stretch; }
     .dropzone { margin: 10px 16px; padding: 14px; min-width: 0; max-width: none; width: auto; display: flex; flex-direction: row; justify-content: center; align-items: baseline; gap: 8px; background: #1a0f0e; border: 1.5px dashed var(--accent); }
@@ -425,6 +427,7 @@
       <button id="undoBtn" class="btn btn-icon" title="Undo">↩</button>
       <button id="redoBtn" class="btn btn-icon" title="Redo">↪</button>
       <button id="clearBtn" class="btn">CLEAR</button>
+      <button id="randomBtn" class="btn" title="Shuffle placed tiles">⟳ RANDOM</button>
       <button id="exportBtn" class="btn btn-accent" disabled>↓ EXPORT</button>
     </div>
   </div>
@@ -1110,6 +1113,13 @@ $('clearBtn').addEventListener('click', () => {
   try { ok = window.confirm('Clear the grid? Your photos stay in the tray, and you can undo this.'); }
   catch (e) { ok = true; }
   if (ok) { tiles = Array(total).fill(null); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit(); }
+});
+$('randomBtn').addEventListener('click', () => {
+  const f = filled(); if (!f.length) return;
+  const placed = f.map(i => tiles[i]);
+  for (let i = placed.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [placed[i], placed[j]] = [placed[j], placed[i]]; }
+  let idx = 0; f.forEach(i => { tiles[i] = placed[idx++]; });
+  normalizeBanners(); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit();
 });
 $('exportBtn').addEventListener('click', () => { if (filled().length) openExport(); });
 $('exportBtnMobile').addEventListener('click', () => { if (filled().length) openExport(); });
