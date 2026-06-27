@@ -70,6 +70,8 @@
     --border-bright: #3a3a3d;
     --text: #ececed;
     --text-dim: #8a8a8f;
+    --dim: #8a8a8f;
+    --faint: #56565c;
     --accent: #ff4438;
     --focus: #4a9eff;
     --gap: 2px;
@@ -369,6 +371,9 @@
     .exp-ios-hint { display: block; }
     .row-grips { width: 22px; }
     .row-grip { font-size: 11px; }
+  }
+  @media (max-width: 480px) {
+    .row-grips { display: none; }
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
     .site-footer .sf-ico { width: 15px; height: 15px; }
@@ -506,6 +511,7 @@
         <ul class="rail-tips">
           <li><b>Span a photo like a collage</b> — tap <b>SPAN</b> on a row to stretch one image across all three tiles.</li>
           <li><b>Export your work</b> — hit <b>EXPORT</b> to save every tile as a ready-to-post image, or your whole feed as one picture.</li>
+          <li><b>Keyboard shortcuts</b> — <b>Ctrl Z</b> / <b>Ctrl Y</b> to undo / redo.</li>
           <li><b>Rearrange</b> — grab a tile's ⠿ handle and drag it to a new spot.</li>
           <li><b>Reorder rows</b> — grab the ⠿ handle on the left of any row and drag it up or down.</li>
           <li><b>Reframe a photo</b> — drag inside it to move the crop; mouse wheel or pinch to zoom. On a trackpad, hold <b>Ctrl</b> while scrolling.</li>
