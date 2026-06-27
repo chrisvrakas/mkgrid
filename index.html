@@ -637,6 +637,7 @@ let histT = null; const debHist = () => { clearTimeout(histT); histT = setTimeou
 function dims() { if (stageTile) return { w: stageTile, h: stageTile * RH / RW }; const w = grid.clientWidth; const tw = (w && w > 50) ? (w - 2 * GAP) / 3 : 130; return { w: tw, h: tw * RH / RW }; }
 function scaleFor(t, contain, cover) { const z = t.z == null ? 1 : t.z; return z <= 1 ? contain + (cover - contain) * z : cover * z; }
 function place(t, a, sw, sh, gap) {
+  if (!assetReady(a)) return { w: 0, h: 0, left: 0, top: 0 };
   if (t.banner) {
     const g = gap == null ? GAP : gap;
     const bw = 3 * sw + 2 * g, bz = t.bz == null ? 1 : t.bz;
@@ -651,6 +652,7 @@ function place(t, a, sw, sh, gap) {
 }
 /* banner transform is shared across its 3 slices */
 function clampBanner(t, a) {
+  if (!assetReady(a)) return;
   const sw = 1, sh = RH / RW, bw = 3, bz = t.bz == null ? 1 : t.bz;
   const s = (bw / a.w) * bz, w = a.w * s, h = a.h * s;
   const exX = Math.max(0, (w - bw) / (2 * bw)), exY = Math.max(0, (h - sh) / (2 * sh));
@@ -660,6 +662,7 @@ function clampBanner(t, a) {
 function setBanner(row, patch) { const s = row * 3; for (let c = 0; c < 3; c++) { const t = tiles[s + c]; if (t && t.banner) { Object.assign(t, patch); const a = lib.find(x => x.id === t.imgId); if (a) clampBanner(t, a); } } }
 function refreshBannerRow(row) { const s = row * 3, d = dims(); for (let c = 0; c < 3; c++) { const cell = grid.children[s + c], t = tiles[s + c]; if (cell && t) { const a = lib.find(x => x.id === t.imgId), im = cell.querySelector('img'); if (a && im) applyImg(im, t, a, d); } } }
 function clampPan(t, a) {
+  if (!assetReady(a)) return;
   const sw = 1, sh = RH / RW;
   const contain = Math.min(sw / a.w, sh / a.h), cover = Math.max(sw / a.w, sh / a.h);
   const s = scaleFor(t, contain, cover), w = a.w * s, h = a.h * s;
@@ -667,7 +670,11 @@ function clampPan(t, a) {
   t.panX = Math.min(ex, Math.max(-ex, t.panX));
   t.panY = Math.min(ey, Math.max(-ey, t.panY));
 }
-function applyImg(img, t, a, d) { const p = place(t, a, d.w, d.h, GAP); img.style.width = p.w + 'px'; img.style.height = p.h + 'px'; img.style.left = p.left + 'px'; img.style.top = p.top + 'px'; }
+function applyImg(img, t, a, d) {
+  if (!assetReady(a)) { img.style.display = 'none'; return; }
+  const p = place(t, a, d.w, d.h, GAP);
+  img.style.width = p.w + 'px'; img.style.height = p.h + 'px'; img.style.left = p.left + 'px'; img.style.top = p.top + 'px'; img.style.display = 'block';
+}
 
 /* ---------- size the grid to fill the viewport — the grid is the product ---------- */
 function fitStage() {
@@ -698,9 +705,9 @@ function render() {
 
     if (t && t.imgId) {
       const a = lib.find(x => x.id === t.imgId);
-      if (a) {
+      if (assetReady(a)) {
         cell.classList.add('has');
-        img.src = a.src; img.alt = a.name ? `Grid tile: ${a.name}` : 'Grid tile image'; applyImg(img, t, a, d); plus.style.display = 'none';
+        setImgSrc(img, a); img.alt = a.name ? `Grid tile: ${a.name}` : 'Grid tile image'; applyImg(img, t, a, d); plus.style.display = 'none';
         if (t.banner) {
           cell.classList.add('banner');
           const rm = mkBtn('✕', () => { removeBannerRow(t.banner.row); if (active != null && active >= t.banner.row * 3 && active < t.banner.row * 3 + 3) active = null; render(); updateExportUI(); syncZoom(); commit(); });
@@ -744,7 +751,7 @@ function buildRowGhost(r) {
     const t = tiles[r * 3 + j];
     const c = document.createElement('div'); c.className = 'row-ghost-cell';
     c.style.aspectRatio = `${RW}/${RH}`;
-    if (t) { const a = lib.find(x => x.id === t.imgId); if (a) { const im = document.createElement('img'); im.src = a.src; c.appendChild(im); } }
+    if (t) { const a = lib.find(x => x.id === t.imgId); if (a) { const im = document.createElement('img'); setImgSrc(im, a); c.appendChild(im); } }
     rowGhost.appendChild(c);
   }
 }
@@ -938,7 +945,7 @@ function placeAsset(i, imgId) { tiles[i] = { imgId, z: 1, panX: 0, panY: 0 }; no
 /* ---------- assets ---------- */
 /* shrink oversized imports before storing — keeps IndexedDB lean.
    PNGs keep alpha; everything else re-encodes to JPEG. Only kicks in above maxSide. */
-function downscale(dataURL, maxSide, mime) {
+function downscale(dataURL, maxSide, mime, decodeSrc) {
   return new Promise(res => {
     const im = new Image();
     im.onload = () => {
@@ -952,15 +959,69 @@ function downscale(dataURL, maxSide, mime) {
       catch (e) { res({ src: dataURL, w: im.width, h: im.height }); }
     };
     im.onerror = () => res({ src: dataURL, w: 0, h: 0 });
-    im.src = dataURL;
+    im.src = decodeSrc || dataURL;
   });
+}
+const blobCache = {};   // imgId -> blobURL (in-memory only, for iOS display)
+
+function displaySrc(a) { return blobCache[a.id] || a.src; }
+function setImgSrc(img, a) {
+  const primary = displaySrc(a);
+  const fallback = a.src && primary !== a.src ? a.src : '';
+  img.onerror = () => {
+    if (!fallback || img.src === fallback) return;
+    img.onerror = null;
+    img.src = fallback;
+  };
+  img.src = primary;
+}
+function cacheDisplayBlob(id, source) {
+  try {
+    revokeDisplayBlob(id);
+    if (source instanceof Blob) blobCache[id] = URL.createObjectURL(source);
+    else blobCache[id] = URL.createObjectURL(dataURLtoBlob(source));
+  } catch (_) {}
+}
+function revokeDisplayBlob(id) {
+  if (!blobCache[id]) return;
+  try { URL.revokeObjectURL(blobCache[id]); } catch (_) {}
+  delete blobCache[id];
+}
+function revokeAllDisplayBlobs() {
+  Object.keys(blobCache).forEach(revokeDisplayBlob);
+}
+function loadImageInfo(src) {
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => res({ w: im.naturalWidth || im.width, h: im.naturalHeight || im.height });
+    im.onerror = () => res(null);
+    im.src = src;
+  });
+}
+function dataURLtoBlob(dataURL) {
+  const [head, data] = dataURL.split(',');
+  const m = head && head.match(/:(.*?);/);
+  if (!m) throw new Error('bad data URL');
+  const bytes = atob(data);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new Blob([arr], { type: m[1] });
 }
 function addFile(file) {
   if (!file.type.startsWith('image/')) return;
+  const id = (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random());
+  // Use the original File blob for on-screen previews. This avoids iOS Safari's large dataURL failures.
+  cacheDisplayBlob(id, file);
   const r = new FileReader();
   r.onload = async e => {
-    const ds = await downscale(e.target.result, 2400, file.type);   // generous: stays crisp at 1080 export even when zoomed
-    const id = (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random());
+    const decodeSrc = blobCache[id] || e.target.result;
+    const ds = await downscale(e.target.result, 2400, file.type, decodeSrc);   // generous: stays crisp at 1080 export even when zoomed
+    if (!blobCache[id]) cacheDisplayBlob(id, ds.src);
+    if (!ds.w || !ds.h) {
+      const info = await loadImageInfo(displaySrc({ id, src: ds.src }));
+      if (info) { ds.w = info.w; ds.h = info.h; }
+    }
+    if (!ds.w || !ds.h) return;
     const a = { id, name: file.name, src: ds.src, w: ds.w, h: ds.h }; lib.push(a); put('assets', a); renderTray();
   };
   r.readAsDataURL(file);
@@ -970,10 +1031,10 @@ function renderTray() {
   if (!lib.length) { tray.innerHTML = '<div class="tray-empty">no photos yet</div>'; return; }
   lib.forEach(a => {
     const el = document.createElement('div'); el.className = 'chip';
-    const img = document.createElement('img'); img.src = a.src; img.alt = a.name ? `Photo: ${a.name}` : 'Uploaded photo';
+    const img = document.createElement('img'); setImgSrc(img, a); img.alt = a.name ? `Photo: ${a.name}` : 'Uploaded photo';
     const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = a.name.length > 22 ? a.name.slice(0, 19) + '…' : a.name;
     const x = document.createElement('button'); x.className = 'del'; x.textContent = '✕';
-    x.addEventListener('click', e => { e.stopPropagation(); lib = lib.filter(l => l.id !== a.id); del('assets', a.id); let touched = false; for (let j = 0; j < tiles.length; j++) if (tiles[j] && tiles[j].imgId === a.id) { tiles[j] = null; sel.delete(j); touched = true; } if (touched) normalizeBanners(); render(); renderTray(); updateExportUI(); if (touched) commit(); });
+    x.addEventListener('click', e => { e.stopPropagation(); revokeDisplayBlob(a.id); lib = lib.filter(l => l.id !== a.id); del('assets', a.id); let touched = false; for (let j = 0; j < tiles.length; j++) if (tiles[j] && tiles[j].imgId === a.id) { tiles[j] = null; sel.delete(j); touched = true; } if (touched) normalizeBanners(); render(); renderTray(); updateExportUI(); if (touched) commit(); });
     el.append(img, nm, x); wireChip(el, a); tray.appendChild(el);
   });
   if (lib.length > 3) {
@@ -1008,7 +1069,7 @@ function openExportPreview() {
   list.forEach(i => {
     const t = tiles[i]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
     const cell = document.createElement('div'); cell.className = 'pv';
-    const img = document.createElement('img'); img.src = a.src; const p = place(t, a, PW, PH, GAP);
+    const img = document.createElement('img'); setImgSrc(img, a); const p = place(t, a, PW, PH, GAP);
     img.style.width = p.w + 'px'; img.style.height = p.h + 'px'; img.style.left = p.left + 'px'; img.style.top = p.top + 'px';
     cell.appendChild(img); preview.appendChild(cell);
   });
@@ -1033,6 +1094,14 @@ function closeExport() {
 }
 const cache = {};
 function loadImg(src) { return cache[src] ? Promise.resolve(cache[src]) : new Promise((res, rej) => { const im = new Image(); im.onload = () => { cache[src] = im; res(im); }; im.onerror = rej; im.src = src; }); }
+async function loadAssetImg(a) {
+  const primary = displaySrc(a);
+  try { return await loadImg(primary); }
+  catch (e) {
+    if (a.src && primary !== a.src) return await loadImg(a.src);
+    throw e;
+  }
+}
 function selectedFmt() { return (document.querySelector('input[name=fmt]:checked') || {}).value || 'png'; }
 async function renderTileBlob(i, fmt) {
   const t = tiles[i]; if (!t) return null;
@@ -1040,7 +1109,7 @@ async function renderTileBlob(i, fmt) {
   const W = 1080, H = Math.round(1080 * RH / RW);
   canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-  const im = await loadImg(a.src); const p = place(t, a, W, H, t.banner ? 0 : GAP);
+  const im = await loadAssetImg(a); const p = place(t, a, W, H, t.banner ? 0 : GAP);
   ctx.drawImage(im, p.left, p.top, p.w, p.h);
   return await new Promise(r => canvas.toBlob(r, fmt === 'jpg' ? 'image/jpeg' : 'image/png', fmt === 'jpg' ? 0.92 : undefined));
 }
@@ -1121,6 +1190,7 @@ dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
 dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('over'); if (e.dataTransfer.files.length) Array.from(e.dataTransfer.files).forEach(addFile); });
 window.addEventListener('dragover', e => { if (e.target === document.body) e.preventDefault(); });
 window.addEventListener('drop', e => { if (e.target === document.body) e.preventDefault(); });
+window.addEventListener('beforeunload', revokeAllDisplayBlobs);
 
 $('clearBtn').addEventListener('click', () => {
   if (!filled().length) return;
@@ -1295,7 +1365,7 @@ async function renderProfileCanvas() {
     if (!t) { ctx.fillStyle = '#131314'; ctx.fillRect(x, ty, tileW, tileH); continue; }
     const a = lib.find(z => z.id === t.imgId);
     if (!a) { ctx.fillStyle = '#131314'; ctx.fillRect(x, ty, tileW, tileH); continue; }
-    let im; try { im = await loadImg(a.src); } catch (e) { continue; }
+    let im; try { im = await loadAssetImg(a); } catch (e) { continue; }
     ctx.save(); ctx.beginPath(); ctx.rect(x, ty, tileW, tileH); ctx.clip();
     ctx.fillStyle = '#000'; ctx.fillRect(x, ty, tileW, tileH);
     const p = place(t, a, tileW, tileH, gExp);
@@ -1378,7 +1448,7 @@ async function loadProfile() { if (!ok) return; const p = (await all('state')).f
 (async function () {
   db = await openDB(); ok = !!db;
   if (ok) {
-    const a = await all('assets'); if (a.length) lib = a;
+    const a = await all('assets'); if (a.length) { lib = a; lib.forEach(asset => cacheDisplayBlob(asset.id, asset.src)); }
     const st = (await all('state')).find(s => s.key === 'layout');
     if (st) { rows = st.rows || 3; total = rows * 3; if (st.RW && st.RH) { RW = st.RW; RH = st.RH; document.documentElement.style.setProperty('--ratio', RW + ' / ' + RH); } tiles = (st.tiles || []).map(t => t || null); while (tiles.length < total) tiles.push(null); const ids = new Set(lib.map(x => x.id)); tiles = tiles.map(t => { if (!t || !ids.has(t.imgId)) return null; if (!t.banner && t.z == null) t.z = 1; delete t.mode; delete t.zoom; return t; }); $('rowsSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.rows) === rows)); $('ratioSeg').querySelectorAll('button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.rw) === RW && parseInt(b.dataset.rh) === RH)); }
   }
