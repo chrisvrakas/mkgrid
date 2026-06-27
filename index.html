@@ -214,13 +214,13 @@
   .grid-wrap { position: relative; display: flex; width: 100%; }
   .grid-wrap .grid { flex: 1; min-width: 0; }
   .row-grips { display: flex; flex-direction: column; width: 18px; flex-shrink: 0; }
-  .row-grip { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--border-bright); font-size: 11px; cursor: grab; opacity: .2; transition: opacity .15s; touch-action: none; user-select: none; }
+  .row-grip { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--border-bright); font-size: 11px; cursor: grab; opacity: .35; transition: opacity .15s; touch-action: none; user-select: none; }
   .row-grip:active { cursor: grabbing; }
   .grid-wrap:hover .row-grip, .row-grip:focus { opacity: .6; }
   .row-grip:hover { opacity: 1 !important; color: var(--accent); }
   .row-grip.rg-active { opacity: 1 !important; color: var(--accent); }
   .row-ghost { position: fixed; pointer-events: none; z-index: 9999; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; opacity: .8; border: 1.5px solid var(--accent); border-radius: 3px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6); }
-  .row-ghost-cell { aspect-ratio: 3/4; overflow: hidden; position: relative; background: var(--surface); }
+  .row-ghost-cell { aspect-ratio: var(--ratio); overflow: hidden; position: relative; background: var(--surface); }
   .row-ghost-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .row-drop-above { box-shadow: inset 0 3px 0 var(--accent); }
   .row-drop-below { box-shadow: inset 0 -3px 0 var(--accent); }
@@ -435,7 +435,7 @@
       <button id="undoBtn" class="btn btn-icon" title="Undo">↩</button>
       <button id="redoBtn" class="btn btn-icon" title="Redo">↪</button>
       <button id="clearBtn" class="btn">CLEAR</button>
-      <button id="randomBtn" class="btn" title="Shuffle placed tiles">⟳ RANDOM</button>
+      <button id="randomBtn" class="btn" title="Shuffle placed tiles (undoable)">⟳ RANDOM</button>
       <button id="exportBtn" class="btn btn-accent" disabled>↓ EXPORT</button>
     </div>
   </div>
@@ -509,7 +509,7 @@
           <li><b>Export your work</b> — hit <b>EXPORT</b> to save every tile as a ready-to-post image, or your whole feed as one picture.</li>
           <li><b>Rearrange</b> — grab a tile's ⠿ handle and drag it to a new spot.</li>
           <li><b>Reorder rows</b> — hover the left edge of the grid to reveal ⠿ row handles. Drag a row up or down to reorder it.</li>
-          <li><b>Reframe a photo</b> — drag inside it to move the crop; <b>Ctrl+scroll</b> or pinch to zoom.</li>
+          <li><b>Reframe a photo</b> — drag inside it to move the crop; mouse wheel or pinch to zoom. On a trackpad, hold <b>Ctrl</b> while scrolling.</li>
           <li><b>Stays private</b> — your photos never leave your device. Nothing is uploaded.</li>
         </ul>
         <div class="rail-cat">FAQ</div>
@@ -870,12 +870,13 @@ function wireCell(cell, i) {
   // SCROLL TO ZOOM — the bit that went missing. passive:false so we can preventDefault.
   cell.addEventListener('wheel', e => {
     const t = tiles[i]; if (!t) return;
-    if (!e.ctrlKey && !e.metaKey) return; // no modifier = scroll page normally
-    e.preventDefault();
     const a = lib.find(x => x.id === t.imgId); if (!a) return;
-    const delta = clamp(e.deltaY, -50, 50) / 50 * 0.15;
-    if (t.banner) { setBanner(t.banner.row, { bz: clamp((t.bz == null ? 1 : t.bz) + (e.deltaY < 0 ? 0.08 : -0.08), 1, ZMAX) }); setActive(i); refreshBannerRow(t.banner.row); syncZoom(); debHist(); return; }
-    t.z = clamp((t.z == null ? 1 : t.z) - delta, ZMIN, ZMAX);
+    const isMouse = e.deltaMode === 1 || (e.deltaMode === 0 && Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 100);
+    if (!isMouse && !e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const step = e.deltaY < 0 ? 0.08 : -0.08;
+    if (t.banner) { setBanner(t.banner.row, { bz: clamp((t.bz == null ? 1 : t.bz) + step, 1, ZMAX) }); setActive(i); refreshBannerRow(t.banner.row); syncZoom(); debHist(); return; }
+    t.z = clamp((t.z == null ? 1 : t.z) + step, ZMIN, ZMAX);
     clampPan(t, a); setActive(i);
     const im = cell.querySelector('img'); if (im) applyImg(im, t, a, dims());
     syncZoom(); debHist();
