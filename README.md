@@ -7,9 +7,9 @@
 
 ---
 
-mkgrid is a single-file, browser-based tool for planning your Instagram grid *before* you post. Drag in your photos, arrange the feed, crop every tile, span an image across a whole row, preview the whole profile, and export post-ready images — or the entire feed as one picture. Nothing uploads. Nothing tracks you. Nothing leaves your machine.
+mkgrid is a single-file, browser-based tool for planning your Instagram grid *before* you post. Drag in your photos, arrange the feed, crop every tile, span an image across a whole row, rearrange rows, preview the whole profile, and export post-ready images — or the entire feed as one picture. Nothing uploads to servers. Nothing tracks you. Nothing leaves your machine.
 
-Built for people who want to plan a beautiful feed without handing unreleased work to someone else's server first.
+Built for people who want to plan a beautiful feed without handing unreleased work to big-tech surveillance capitalism 
 
 > The privacy isn't a setting you toggle. It's the architecture. There is no backend to leak to. → **[privacy.html](https://mkgrid.app/privacy.html)**
 
@@ -32,9 +32,9 @@ Your Instagram grid is a first impression you only get to make once. The order o
 
 So people rehearse. The problem is *how*. Every existing grid planner wants you to create an account, upload your unreleased photos to their servers, and pay a monthly subscription to unlock basic features — all to preview a layout. You hand over your content and your data to plan a grid.
 
-mkgrid does the same job with none of that. It's one HTML file that runs entirely in your browser. Your photos are loaded, arranged, cropped, and exported on your own machine. There is no account, no upload, no server, no analytics. Close the tab and the only place your feed ever existed is your own browser.
+[mkgrid](https://mkgird.app) does the same job with none of that. It's one HTML file that runs entirely in your browser. Your photos are loaded, arranged, cropped, and exported on your own machine. There is no account, no upload, no server, no analytics. Close the tab and the only place your feed ever existed is your own browser.
 
-The privacy of your work depends on the ownership of your work. mkgrid keeps both with you.
+The privacy of your work depends on the ownership of your work. 
 
 It's `mkdir` for your feed: **make grid**.
 
@@ -109,7 +109,7 @@ The feed *is* the marketing. mkgrid is how you build it.
 
 mkgrid follows a strict set of principles:
 
-**Privacy as architecture.** The privacy isn't a promise — it's the build. There is no backend, so there is nothing to leak, sell, or subpoena. The whole tool is a static file you can read top to bottom, fork, and self-host.
+**Privacy as architecture.** The privacy isn't a promise — it's the build. There is no backend, so there is nothing to leak, sell, or subpoena. The whole tool is a static file you can read top to bottom.
 
 **Zero bloat.** One HTML file. No frameworks, no build step, no CDN, no `node_modules`. The ZIP writer and the canvas exporter are hand-rolled. If vanilla JS can't do it, it doesn't belong here.
 
@@ -151,28 +151,13 @@ That's exactly what planning a feed is: deciding, in private, what you'll reveal
 
 mkgrid is one piece of a private creative workflow. The broader stack worth building around it:
 
-### Browsers
-- **[Firefox](https://www.mozilla.org/firefox/)** — open source, extensible. Pair with uBlock Origin.
-- **[LibreWolf](https://librewolf.net/)** — Firefox fork, hardened defaults out of the box
-- **[Mullvad Browser](https://mullvad.net/browser)** — built with the Tor Project to minimize fingerprinting
-
 ### Image & Metadata
 - **[exiftool](https://exiftool.org)** — strip EXIF/GPS metadata from photos *before* posting. Prevents doxxing via image data.
+- **[Adobe Photoshop](https://www.adobe.com/products/photoshop.html)** — useful for optimizing and editing images prior to grid mockup
 - **[GIMP](https://www.gimp.org/)** / **[Krita](https://krita.org/)** — open source image editors
 - **[Squoosh](https://squoosh.app/)** — local, in-browser image compression (also zero-upload)
 
-### Privacy Foundation
-- **[Mullvad VPN](https://mullvad.net)** — no account, accepts cash/crypto, no logs
-- **[Signal](https://signal.org)** — the standard for encrypted messaging
-- **[KeePassXC](https://keepassxc.org)** — local, open source password manager
-
 ### Further Reading
-- **[privacytools.io](https://www.privacytools.io)** — privacy tool recommendations
-- **[Privacy Guides](https://www.privacyguides.org)** — community-driven privacy resources
-- **[Surveillance Self-Defense (EFF)](https://ssd.eff.org)** — practical guides from the EFF
-
----
-
 Looking for more? I maintain an ever-evolving list of 1,000+ hand-picked privacy tools, books, and resources at **[chrisvrakas.com/resources.html](https://chrisvrakas.com/resources.html)** — also an open-source repo at **[github.com/chrisvrakas/awesome-polymathic-resource-stack](https://github.com/chrisvrakas/awesome-polymathic-resource-stack)**.
 
 ---
@@ -203,10 +188,10 @@ Open source under the [MIT License](LICENSE) — fork it, modify it, learn from 
 **Chris Vrakas**
 
 - Website: [chrisvrakas.com](https://chrisvrakas.com)
+- Instagram: [@chris_vrakas](https://instagram.com/chris_vrakas) · [@mkgrid.app](https://instagram.com/mkgrid.app)
 - GitHub: [@chrisvrakas](https://github.com/chrisvrakas)
 - X: [@chris_vrakas](https://x.com/chris_vrakas)
 - Medium: [@chrisvrakas](https://medium.com/@chrisvrakas)
-- Instagram: [@chris_vrakas](https://instagram.com/chris_vrakas) · [@mkgrid.app](https://instagram.com/mkgrid.app)
 
 ---
 
