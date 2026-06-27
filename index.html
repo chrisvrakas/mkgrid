@@ -211,6 +211,19 @@
   .tab.active { color: var(--text); }
 
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); background: var(--border-bright); }
+  .grid-wrap { position: relative; display: flex; width: 100%; }
+  .grid-wrap .grid { flex: 1; min-width: 0; }
+  .row-grips { display: flex; flex-direction: column; width: 18px; flex-shrink: 0; }
+  .row-grip { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--border-bright); font-size: 11px; cursor: grab; opacity: 0; transition: opacity .15s; touch-action: none; user-select: none; }
+  .row-grip:active { cursor: grabbing; }
+  .grid-wrap:hover .row-grip, .row-grip:focus { opacity: .6; }
+  .row-grip:hover { opacity: 1 !important; color: var(--accent); }
+  .row-grip.rg-active { opacity: 1 !important; color: var(--accent); }
+  .row-ghost { position: fixed; pointer-events: none; z-index: 9999; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; opacity: .8; border: 1.5px solid var(--accent); border-radius: 3px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6); }
+  .row-ghost-cell { aspect-ratio: 3/4; overflow: hidden; position: relative; background: var(--surface); }
+  .row-ghost-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .row-drop-above { box-shadow: inset 0 3px 0 var(--accent); }
+  .row-drop-below { box-shadow: inset 0 -3px 0 var(--accent); }
   .cell {
     position: relative; overflow: hidden; background: #191a1c;
     aspect-ratio: var(--ratio); touch-action: manipulation; user-select: none;
@@ -345,6 +358,8 @@
     #exportBtnMobile { display: block; margin: 0 16px 12px; padding: 13px; font-size: 13px; }
     .site-footer { padding: 18px 16px 16px; }
     .exp-ios-hint { display: block; }
+    .row-grips { width: 26px; }
+    .row-grip { font-size: 13px; opacity: .5; }
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
     .site-footer .sf-ico { width: 15px; height: 15px; }
@@ -457,7 +472,10 @@
 
         <div class="tabbar"><span class="tab active">▦</span><span class="tab">▶</span><span class="tab">⊡</span></div>
 
-        <div class="grid" id="grid"></div>
+        <div class="grid-wrap">
+          <div class="row-grips" id="rowGrips"></div>
+          <div class="grid" id="grid"></div>
+        </div>
       </div>
       <input type="file" id="avatarInput" accept="image/*" hidden>
       <input type="file" id="hlInput" accept="image/*" hidden>
@@ -690,6 +708,84 @@ function render() {
     if (active === i) cell.classList.add('active', 'focus');
     wireCell(cell, i);
     grid.appendChild(cell);
+  }
+  renderRowGrips();
+}
+
+/* ---------- row grip / row reorder ---------- */
+let rowDrag = null;
+const rowGhost = document.createElement('div'); rowGhost.className = 'row-ghost'; rowGhost.style.display = 'none'; document.body.appendChild(rowGhost);
+
+function swapRows(r1, r2) {
+  const n = rows, c = 3;
+  if (r1 < 0 || r2 < 0 || r1 >= n || r2 >= n || r1 === r2) return;
+  for (let j = 0; j < c; j++) { const tmp = tiles[r1 * c + j]; tiles[r1 * c + j] = tiles[r2 * c + j]; tiles[r2 * c + j] = tmp; }
+  normalizeBanners(); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit();
+}
+
+function buildRowGhost(r) {
+  rowGhost.innerHTML = '';
+  for (let j = 0; j < 3; j++) {
+    const t = tiles[r * 3 + j];
+    const c = document.createElement('div'); c.className = 'row-ghost-cell';
+    c.style.aspectRatio = `${RW}/${RH}`;
+    if (t) { const a = lib.find(x => x.id === t.imgId); if (a) { const im = document.createElement('img'); im.src = a.src; c.appendChild(im); } }
+    rowGhost.appendChild(c);
+  }
+}
+
+function rowAt(clientY) {
+  const grips = document.querySelectorAll('.row-grip');
+  for (let i = 0; i < grips.length; i++) { const r = grips[i].getBoundingClientRect(); if (clientY >= r.top && clientY <= r.bottom) return i; }
+  // fallback: check grid cells
+  for (let i = 0; i < grid.children.length; i++) { const r = grid.children[i].getBoundingClientRect(); if (clientY >= r.top && clientY <= r.bottom) return Math.floor(i / 3); }
+  return -1;
+}
+
+function clearRowHints() { document.querySelectorAll('.row-drop-above,.row-drop-below').forEach(el => el.classList.remove('row-drop-above','row-drop-below')); }
+
+function hintRow(targetRow, srcRow) {
+  clearRowHints();
+  if (targetRow < 0 || targetRow === srcRow) return;
+  const grips = document.querySelectorAll('.row-grip');
+  if (grips[targetRow]) grips[targetRow].classList.add(targetRow < srcRow ? 'row-drop-above' : 'row-drop-below');
+}
+
+function renderRowGrips() {
+  const rg = document.getElementById('rowGrips'); if (!rg) return;
+  rg.innerHTML = '';
+  for (let r = 0; r < rows; r++) {
+    const g = document.createElement('div'); g.className = 'row-grip'; g.textContent = '⠿'; g.dataset.r = r;
+    g.setAttribute('role', 'button'); g.setAttribute('aria-label', `Drag to reorder row ${r + 1}`);
+    g.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      const r0 = parseInt(g.dataset.r);
+      rowDrag = { id: e.pointerId, src: r0 };
+      g.classList.add('rg-active');
+      buildRowGhost(r0);
+      const gw = grid.getBoundingClientRect().width / 3 * 2.5;
+      rowGhost.style.width = gw + 'px'; rowGhost.style.display = 'grid';
+      rowGhost.style.left = (e.clientX - gw / 2) + 'px'; rowGhost.style.top = (e.clientY - 20) + 'px';
+      document.body.style.overflow = 'hidden'; document.body.style.touchAction = 'none';
+      try { g.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    g.addEventListener('pointermove', e => {
+      if (!rowDrag || rowDrag.id !== e.pointerId) return; e.preventDefault();
+      const gw = parseFloat(rowGhost.style.width);
+      rowGhost.style.left = (e.clientX - gw / 2) + 'px'; rowGhost.style.top = (e.clientY - 20) + 'px';
+      hintRow(rowAt(e.clientY), rowDrag.src);
+    });
+    const endRow = e => {
+      if (!rowDrag || rowDrag.id !== e.pointerId) return;
+      const tgt = rowAt(e.clientY);
+      rowGhost.style.display = 'none'; clearRowHints();
+      document.querySelectorAll('.row-grip').forEach(x => x.classList.remove('rg-active'));
+      document.body.style.overflow = ''; document.body.style.touchAction = '';
+      if (tgt >= 0 && tgt !== rowDrag.src) swapRows(rowDrag.src, tgt);
+      rowDrag = null;
+    };
+    g.addEventListener('pointerup', endRow); g.addEventListener('pointercancel', endRow);
+    rg.appendChild(g);
   }
 }
 function mkBtn(label, fn) { const b = document.createElement('button'); b.textContent = label; b.addEventListener('click', e => { e.stopPropagation(); fn(); }); return b; }
@@ -1215,9 +1311,9 @@ function wireProfile() {
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && f !== 'bio') { e.preventDefault(); el.blur(); } });
   });
   $('avatar').addEventListener('click', () => $('avatarInput').click());
-  $('avatarInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = async ev => { const ds = await downscale(ev.target.result, 800, file.type); profile.avatar = ds.src; applyProfile(); saveProfile(); }; r.readAsDataURL(file); $('avatarInput').value = ''; });
+  $('avatarInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = async ev => { profile.avatar = ev.target.result; applyProfile(); saveProfile(); }; r.readAsDataURL(file); $('avatarInput').value = ''; });
   $('hlToggle').addEventListener('click', () => { profile.hlOpen = !profile.hlOpen; applyHighlights(); saveProfile(); });
-  $('hlInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file || !hlTarget) return; const r = new FileReader(); r.onload = async ev => { const ds = await downscale(ev.target.result, 600, file.type); const h = profile.highlights.find(x => x.id === hlTarget); if (h) { h.cover = ds.src; applyHighlights(); saveProfile(); } hlTarget = null; }; r.readAsDataURL(file); $('hlInput').value = ''; });
+  $('hlInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file || !hlTarget) return; const r = new FileReader(); r.onload = async ev => { const h = profile.highlights.find(x => x.id === hlTarget); if (h) { h.cover = ev.target.result; applyHighlights(); saveProfile(); } hlTarget = null; }; r.readAsDataURL(file); $('hlInput').value = ''; });
 }
 function applyProfile() {
   TEXT_FIELDS.forEach(f => { const el = document.querySelector(`[data-f="${f}"]`); if (el && document.activeElement !== el) el.textContent = profile[f] || ''; });
