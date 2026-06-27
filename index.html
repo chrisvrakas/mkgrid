@@ -213,11 +213,11 @@
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); background: var(--border-bright); }
   .grid-wrap { position: relative; display: flex; width: 100%; }
   .grid-wrap .grid { flex: 1; min-width: 0; }
-  .row-grips { display: flex; flex-direction: column; width: 28px; flex-shrink: 0; gap: 2px; padding: 2px 0; }
-  .row-grip { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 14px; cursor: grab; opacity: 1; transition: color .15s, background .15s; touch-action: none; user-select: none; border-radius: 4px; background: rgba(255,255,255,.04); margin: 3px 2px; }
+  .row-grips { display: flex; flex-direction: column; width: 20px; flex-shrink: 0; }
+  .row-grip { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 10px; cursor: grab; transition: color .15s; touch-action: none; user-select: none; }
   .row-grip:active { cursor: grabbing; }
-  .row-grip:hover { color: var(--accent); background: rgba(255,68,56,.12); }
-  .row-grip.rg-active { color: var(--accent); background: rgba(255,68,56,.18); }
+  .row-grip:hover { color: var(--accent); }
+  .row-grip.rg-active { color: var(--accent); }
   .row-ghost { position: fixed; pointer-events: none; z-index: 9999; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; opacity: .8; border: 1.5px solid var(--accent); border-radius: 3px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6); }
   .row-ghost-cell { aspect-ratio: var(--ratio); overflow: hidden; position: relative; background: var(--surface); }
   .row-ghost-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -367,8 +367,8 @@
     #exportBtnMobile { display: block; margin: 0 16px 12px; padding: 13px; font-size: 13px; }
     .site-footer { padding: 18px 16px 16px; }
     .exp-ios-hint { display: block; }
-    .row-grips { width: 30px; }
-    .row-grip { font-size: 15px; }
+    .row-grips { width: 22px; }
+    .row-grip { font-size: 11px; }
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
     .site-footer .sf-ico { width: 15px; height: 15px; }
@@ -507,12 +507,11 @@
           <li><b>Span a photo like a collage</b> — tap <b>SPAN</b> on a row to stretch one image across all three tiles.</li>
           <li><b>Export your work</b> — hit <b>EXPORT</b> to save every tile as a ready-to-post image, or your whole feed as one picture.</li>
           <li><b>Rearrange</b> — grab a tile's ⠿ handle and drag it to a new spot.</li>
-          <li><b>Reorder rows</b> — hover the left edge of the grid to reveal ⠿ row handles. Drag a row up or down to reorder it.</li>
+          <li><b>Reorder rows</b> — grab the ⠿ handle on the left of any row and drag it up or down.</li>
           <li><b>Reframe a photo</b> — drag inside it to move the crop; mouse wheel or pinch to zoom. On a trackpad, hold <b>Ctrl</b> while scrolling.</li>
-          <li><b>Stays private</b> — your photos never leave your device. Nothing is uploaded.</li>
         </ul>
         <div class="rail-cat">FAQ</div>
-        <details><summary>Do my photos get uploaded?</summary><p>No. mkgrid runs entirely in your browser — there's no server to upload to. Your images never leave your device.</p></details>
+        <details><summary>Do my photos stay private?</summary><p>Yes — completely. mkgrid runs entirely in your browser. There's no server, no upload, no account. Your images never leave your device.</p></details>
         <details><summary>Do I need an account?</summary><p>No signup, no login, no email. Open it and start planning.</p></details>
         <details><summary>Is it really free?</summary><p>Yes — free and open-source (MIT). No ads, no upsells, nothing behind a paywall.</p></details>
         <details><summary>Where is my work saved?</summary><p>Locally, in your browser — on your device, never a server. Clearing your browser data removes it.</p></details>
