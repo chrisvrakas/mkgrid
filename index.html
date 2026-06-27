@@ -344,7 +344,7 @@
     .shell { display: block; padding: 0; overflow: visible; }
     .main { flex-direction: column; overflow: visible; max-width: none; margin: 0; border: none; border-radius: 0; box-shadow: none; }
     .main > .sidebar, .main > .rail { border-radius: 0; }
-    .stage { flex: none; overflow: visible; padding: 12px 0 30px; }
+    .stage { flex: none; overflow: visible; padding: 12px 8px 30px; }
     .phone { width: 100%; padding: 10px; margin: 0; }
     .rail { width: 100%; border-left: none; border-top: 1px solid var(--border); overflow: visible; padding: 20px 16px; }
     .header { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -373,7 +373,7 @@
     .row-grips { width: 22px; }
     .row-grip { font-size: 11px; }
   }
-  @media (max-width: 480px) {
+  @media (max-width: 680px) {
     .row-grips { display: none; }
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
@@ -512,7 +512,7 @@
           <li><b>Export your work</b> — hit <b>EXPORT</b> to save every tile as a ready-to-post image, or your whole feed as one picture.</li>
           <li><b>Keyboard shortcuts</b> — <b>Ctrl Z</b> / <b>Ctrl Y</b> to undo / redo.</li>
           <li><b>Rearrange</b> — grab a tile's ⠿ handle and drag it to a new spot.</li>
-          <li><b>Reorder rows</b> — grab the ⠿ handle on the left of any row and drag it up or down.</li>
+          <li><b>Reorder rows</b> — on desktop, grab the ⠿ handle on the left of any row and drag it up or down.</li>
           <li><b>Reframe a photo</b> — drag inside it to move the crop; mouse wheel or pinch to zoom. On a trackpad, hold <b>Ctrl</b> while scrolling.</li>
         </ul>
         <div class="rail-cat">FAQ</div>
@@ -631,7 +631,7 @@ function restore(s) { tiles = s.map(t => t ? { ...t } : null); sel.clear(); acti
 function undo() { if (pos > 0) { pos--; restore(hist[pos]); updateHistUI(); } }
 function redo() { if (pos < hist.length - 1) { pos++; restore(hist[pos]); updateHistUI(); } }
 function updateHistUI() { undoBtn.disabled = pos <= 0; redoBtn.disabled = pos >= hist.length - 1; }
-let histT = null; const debHist = () => { clearTimeout(histT); histT = setTimeout(commit, 350); };
+let histT = null; const debHist = () => { clearTimeout(histT); histT = setTimeout(commit, 250); };
 
 /* ---------- geometry (proven WYSIWYG: same math for tile, preview, export) ---------- */
 function dims() { if (stageTile) return { w: stageTile, h: stageTile * RH / RW }; const w = grid.clientWidth; const tw = (w && w > 50) ? (w - 2 * GAP) / 3 : 130; return { w: tw, h: tw * RH / RW }; }
