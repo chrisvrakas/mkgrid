@@ -471,6 +471,7 @@
           <input type="range" id="zoomRange" min="0" max="500" value="100" disabled>
           <span>IN</span>
         </div>
+        <div id="zoomVal" style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:4px;letter-spacing:.5px;">100%</div>
       </div>
       <div class="rail-block rail-help">
         <div class="rail-cat rail-cat-first">TIPS</div>
@@ -869,7 +870,7 @@ function renderTray() {
 }
 
 /* ---------- zoom ui ---------- */
-function syncZoom() { const t = active != null ? tiles[active] : null; const on = !!t; zoomRange.disabled = !on; zoomRange.value = on ? Math.round((t.banner ? (t.bz == null ? 1 : t.bz) : (t.z == null ? 1 : t.z)) * 100) : 100; }
+function syncZoom() { const t = active != null ? tiles[active] : null; const on = !!t; zoomRange.disabled = !on; const pct = on ? Math.round((t.banner ? (t.bz == null ? 1 : t.bz) : (t.z == null ? 1 : t.z)) * 100) : 100; zoomRange.value = pct; const lbl = document.getElementById('zoomVal'); if (lbl) lbl.textContent = on ? pct + '%' : '—'; }
 zoomRange.addEventListener('input', e => {
   if (active == null) return; const t = tiles[active]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
   if (t.banner) { setBanner(t.banner.row, { bz: clamp(parseInt(e.target.value) / 100, 1, ZMAX) }); refreshBannerRow(t.banner.row); debHist(); return; }
