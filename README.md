@@ -32,7 +32,7 @@ Your Instagram grid is a first impression you only get to make once. The order o
 
 So people rehearse. The problem is *how*. Every existing grid planner wants you to create an account, upload your unreleased photos to their servers, and pay a monthly subscription to unlock basic features — all to preview a layout. You hand over your content and your data to plan a grid.
 
-[mkgrid](https://mkgird.app) does the same job with none of that. It's one HTML file that runs entirely in your browser. Your photos are loaded, arranged, cropped, and exported on your own machine. There is no account, no upload, no server, no analytics. Close the tab and the only place your feed ever existed is your own browser.
+**[mkgrid.app](https://mkgrid.app)** does the same job with none of that. It's one HTML file that runs entirely in your browser. Your photos are loaded, arranged, cropped, and exported on your own machine. There is no account, no upload, no server, no analytics. Close the tab and the only place your feed ever existed is your own browser.
 
 The privacy of your work depends on the ownership of your work. 
 
@@ -149,7 +149,7 @@ That's exactly what planning a feed is: deciding, in private, what you'll reveal
 
 ## 🔧 Recommended Tools
 
-mkgrid is one piece of a private creative workflow. The broader stack worth building around it:
+mkgrid is one piece of a private creative workflow. Consider expanding to a broader stack worth building around it:
 
 ### Image & Metadata
 - **[exiftool](https://exiftool.org)** — strip EXIF/GPS metadata from photos *before* posting. Prevents doxxing via image data.
