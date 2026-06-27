@@ -329,6 +329,14 @@
   ::-webkit-scrollbar { width: 7px; height: 7px; }
   ::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 4px; }
 
+  @media (max-width: 1080px) and (min-width: 821px) {
+    .rail { width: 200px; min-width: 200px; }
+    .rail-h { font-size: 9px; }
+    .rail-tips li, .rail-note { font-size: 10px; }
+    .sidebar { width: 220px; min-width: 220px; }
+    .zoom input[type=range] { width: 100px; }
+    .sb-mid { display: none; }
+  }
   @media (max-width: 820px) {
     .app { height: auto; min-height: 100dvh; }
     :root { --gutter: 16px; }
