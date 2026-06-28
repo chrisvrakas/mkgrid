@@ -117,7 +117,18 @@
   .btn-accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
   .btn-accent:hover:not(:disabled) { background: #ff5c52; }
   .btn-accent:disabled { opacity: 1; background: #3a1714; color: var(--text-dim); border-color: #3a1714; }
-  #exportBtnMobile { display: none; }
+  #mobileBar { display: none; }
+  #assignHint { display: none; }
+  .mobile-zoom-strip { display: none; }
+  .cell.assign-target { outline: 2px solid var(--accent) !important; outline-offset: -2px; animation: assignPulse 1s ease-in-out infinite; }
+  .chip.assign-ready { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @keyframes assignPulse { 0%,100% { opacity:.7; } 50% { opacity:1; } }
+  .row-move { display: none; }
+  .row-move-wrap { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); display: none; gap: 4px; z-index: 15; }
+  .cell:hover .row-move-wrap, .cell.active .row-move-wrap { display: flex; }
+  .row-move-wrap .row-move { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 13px; padding: 0; border-radius: 3px; cursor: pointer; }
+  .row-move-wrap .row-move:hover { border-color: var(--accent); color: #fff; }
+  .row-move-wrap .row-move:disabled { opacity: .3; cursor: default; pointer-events: none; }
 
   /* main */
   /* workspace shell — centers + frames the tool so it reads as a contained object, not a void */
@@ -344,9 +355,6 @@
     .shell { display: block; padding: 0; overflow: visible; }
     .main { flex-direction: column; overflow: visible; max-width: none; margin: 0; border: none; border-radius: 0; box-shadow: none; }
     .main > .sidebar, .main > .rail { border-radius: 0; }
-    .stage { flex: none; overflow: visible; padding: 12px 8px 30px; }
-    .phone { width: 100%; padding: 10px; margin: 0; }
-    .rail { width: 100%; border-left: none; border-top: 1px solid var(--border); overflow: visible; padding: 20px 16px; }
     .header { flex-direction: column; align-items: stretch; gap: 10px; }
     .logo { align-self: flex-start; }
     .controls { width: 100%; gap: 6px; flex-wrap: wrap; }
@@ -355,19 +363,32 @@
     #undoBtn, #redoBtn { flex: 1 1 auto; }
     #clearBtn { flex: 2 1 auto; }
     #randomBtn { flex: 2 1 auto; }
-    #exportBtn { flex: 3 1 100%; order: 9; }
-    .sidebar { width: 100%; flex-direction: column; height: auto; border-right: none; border-bottom: 1px solid var(--border); align-items: stretch; }
-    .dropzone { margin: 10px 16px; padding: 14px; min-width: 0; max-width: none; width: auto; display: flex; flex-direction: row; justify-content: center; align-items: baseline; gap: 8px; background: #1a0f0e; border: 1.5px dashed var(--accent); }
-    .dropzone strong { font-size: 13px; display: inline; }
-    .dropzone span { display: inline; font-size: 10px; margin-top: 0; }
+    #exportBtn { display: none; }
+    .sidebar { order: 1; width: 100%; flex-direction: column; height: auto; border-right: none; border-bottom: 1px solid var(--border); align-items: stretch; }
+    .dropzone { margin: 8px 16px; padding: 8px 14px; min-width: 0; max-width: none; width: auto; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px; background: #1a0f0e; border: 1.5px dashed var(--accent); border-radius: 6px; white-space: nowrap; }
+    .dropzone strong { font-size: 12px; display: inline; }
+    .dropzone span { display: inline; font-size: 10px; margin-top: 0; overflow: hidden; text-overflow: ellipsis; }
     .tray { flex: none; width: 100%; flex-direction: row; align-items: center; padding: 0 16px 10px; gap: 10px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
     .tray::-webkit-scrollbar { height: 3px; }
     .tray::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
     .tray::-webkit-scrollbar-track { background: transparent; }
     .tray-hint { flex-shrink: 0; color: var(--text-dim); font-size: 10px; letter-spacing: 1px; padding: 0 4px 0 8px; opacity: .7; pointer-events: none; white-space: nowrap; }
     .tray:empty, .tray-empty { padding-left: 16px; }
-    #exportBtn { display: none; }
-    #exportBtnMobile { display: block; margin: 0 16px 12px; padding: 13px; font-size: 13px; }
+    .stage { order: 2; flex: none; overflow: visible; padding: 12px 8px 30px; }
+    .phone { width: 100%; padding: 10px; margin: 0; }
+    #mobileBar { order: 4; display: flex; flex-direction: column; position: static; background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; gap: 0; }
+    #zoomBlock { display: none; }
+    .mobile-zoom-strip { display: flex; align-items: center; gap: 8px; padding: 10px 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+    .mz-label { font-size: 9px; letter-spacing: 2px; color: var(--accent); flex-shrink: 0; }
+    .zoom-out-lbl, .zoom-in-lbl { font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+    #zoomRangeMob { flex: 1; height: 3px; background: #2c2c2e; -webkit-appearance: none; appearance: none; border-radius: 2px; }
+    #zoomRangeMob:disabled { opacity: .4; }
+    #zoomRangeMob::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; background: var(--accent); border-radius: 3px; cursor: pointer; }
+    #zoomRangeMob::-moz-range-thumb { width: 15px; height: 15px; background: var(--accent); border: none; border-radius: 3px; cursor: pointer; }
+    .mz-pct { font-size: 11px; color: var(--text-dim); min-width: 36px; text-align: right; flex-shrink: 0; letter-spacing: .5px; }
+    #assignHint { display: block; font-size: 11px; color: var(--accent); text-align: center; padding: 4px 0 8px; letter-spacing: .5px; animation: assignPulse 1.2s ease-in-out infinite; }
+    #exportBtnMobile { display: block; width: 100%; padding: 14px; font-size: 13px; font-weight: 700; letter-spacing: .5px; }
+    .rail { order: 5; width: 100%; border-left: none; border-top: 1px solid var(--border); overflow: visible; padding: 20px 16px; }
     .site-footer { padding: 18px 16px 16px; }
     .exp-ios-hint { display: block; }
     .row-grips { width: 22px; }
@@ -375,6 +396,7 @@
   }
   @media (max-width: 680px) {
     .row-grips { display: none; }
+    .row-move-wrap { display: flex; bottom: 6px; top: auto; left: 6px; transform: none; }  /* always visible on mobile, bottom-left to avoid check circle */
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
     .site-footer .sf-ico { width: 15px; height: 15px; }
@@ -448,11 +470,10 @@
     <div class="sidebar">
       <div class="dropzone" id="dropzone">
         <strong>+ ADD PHOTOS</strong>
-        <span>drag in or click · stays on your device</span>
+        <span>tap or drag · stays on your device</span>
         <input type="file" id="fileInput" multiple accept="image/*" hidden>
       </div>
       <div class="tray" id="tray"><div class="tray-empty">no photos yet</div></div>
-      <button id="exportBtnMobile" class="btn btn-accent" disabled>↓ EXPORT</button>
     </div>
 
     <div class="stage">
@@ -496,14 +517,16 @@
 
     </div>
     <aside class="rail">
-      <div class="rail-block">
+      <div class="rail-block" id="zoomBlock">
         <div class="rail-h">ZOOM</div>
         <div class="zoom">
           <span>OUT</span>
           <input type="range" id="zoomRange" min="0" max="500" value="100" disabled>
           <span>IN</span>
         </div>
-        <div id="zoomVal" style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:4px;letter-spacing:.5px;">100%</div>
+        <div id="zoomVal" style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:4px;letter-spacing:.5px;">
+          <span id="zoomPct" contenteditable="false" title="Click to enter exact zoom %" style="cursor:default;border-radius:3px;padding:1px 4px;outline:none;min-width:36px;display:inline-block;text-align:center;">—</span>
+        </div>
       </div>
       <div class="rail-block rail-help">
         <div class="rail-cat rail-cat-first">TIPS</div>
@@ -524,6 +547,18 @@
         <details><summary>Is it open source?</summary><p>Yes — one readable file. <a href="https://github.com/chrisvrakas/mkgrid" target="_blank" rel="noopener">Read or fork it on GitHub ↗</a></p></details>
       </div>
     </aside>
+    <!-- Mobile export bar — zoom strip + export button, sits between grid and tips/FAQ -->
+    <div id="mobileBar">
+      <div id="mobileZoom" class="mobile-zoom-strip">
+        <span class="mz-label">ZOOM</span>
+        <span class="zoom-out-lbl">OUT</span>
+        <input type="range" id="zoomRangeMob" min="0" max="500" value="100" disabled>
+        <span class="zoom-in-lbl">IN</span>
+        <span id="zoomPctMob" class="mz-pct">—</span>
+      </div>
+      <div id="assignHint" style="display:none;">tap a photo above to place it</div>
+      <button id="exportBtnMobile" class="btn btn-accent" disabled>↓ EXPORT</button>
+    </div>
   </div>
   </div>
 
@@ -719,6 +754,15 @@ function render() {
       } else { tiles[i] = null; img.style.display = 'none'; }
     } else { img.style.display = 'none'; }
 
+    // row-move buttons on leftmost cell — top-left overlay, separate from bottom tools
+    if (i % 3 === 0) {
+      const row = Math.floor(i / 3);
+      const rmWrap = document.createElement('div'); rmWrap.className = 'row-move-wrap';
+      const mu = mkBtn('↑', () => { swapRows(row, row - 1); }); mu.className = 'row-move'; mu.title = 'Move row up'; if (row === 0) mu.disabled = true;
+      const md = mkBtn('↓', () => { swapRows(row, row + 1); }); md.className = 'row-move'; md.title = 'Move row down'; if (row === rows - 1) md.disabled = true;
+      rmWrap.append(mu, md); cell.appendChild(rmWrap);
+    }
+
     if (sel.has(i)) cell.classList.add('sel');
     if (active === i) cell.classList.add('active', 'focus');
     wireCell(cell, i);
@@ -735,6 +779,11 @@ function swapRows(r1, r2) {
   const n = rows, c = 3;
   if (r1 < 0 || r2 < 0 || r1 >= n || r2 >= n || r1 === r2) return;
   for (let j = 0; j < c; j++) { const tmp = tiles[r1 * c + j]; tiles[r1 * c + j] = tiles[r2 * c + j]; tiles[r2 * c + j] = tmp; }
+  // Update banner.row references so normalizeBanners doesn't strip them
+  for (let j = 0; j < c; j++) {
+    if (tiles[r1 * c + j]?.banner) tiles[r1 * c + j] = { ...tiles[r1 * c + j], banner: { ...tiles[r1 * c + j].banner, row: r1 } };
+    if (tiles[r2 * c + j]?.banner) tiles[r2 * c + j] = { ...tiles[r2 * c + j], banner: { ...tiles[r2 * c + j].banner, row: r2 } };
+  }
   normalizeBanners(); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit();
 }
 
@@ -820,7 +869,13 @@ function wireCell(cell, i) {
   cell.addEventListener('pointerdown', e => {
     if (e.target.closest('.grip, .check, .tools')) return;
     const t = tiles[i];
-    if (!t) { setActive(i); return; }
+    // tap-to-assign: empty cell on touch enters assign mode
+    if (!t) {
+      if (e.pointerType !== 'mouse' && lib.length > 0) { e.preventDefault(); setActive(i); enterAssign(i); return; }
+      setActive(i); return;
+    }
+    // tap anywhere while in assign mode cancels it
+    if (assignTarget >= 0) { exitAssign(); return; }
     const touch = e.pointerType !== 'mouse';
     g.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (t.banner) {
@@ -917,6 +972,17 @@ function wireGrip(grip, i) {
 function wireChip(el, a) {
   el.addEventListener('pointerdown', e => {
     if (e.target.closest('.del')) return;
+    // tap-to-assign: if a cell is waiting, assign immediately without drag
+    if (e.pointerType !== 'mouse' && assignTarget >= 0) {
+      e.preventDefault();
+      const target = assignTarget;
+      exitAssign();
+      placeAsset(target, a.id);
+      // auto-advance to next empty cell
+      const next = nextEmptyCell(target);
+      if (next >= 0 && lib.length > 1) enterAssign(next);
+      return;
+    }
     e.preventDefault();
     drag = { kind: 'tray', id: e.pointerId, imgId: a.id };
     showGhost(displaySrc(a)); moveGhost(e.clientX, e.clientY); el.classList.add('dragging');
@@ -1019,13 +1085,50 @@ function renderTray() {
 }
 
 /* ---------- zoom ui ---------- */
-function syncZoom() { const t = active != null ? tiles[active] : null; const on = !!t; zoomRange.disabled = !on; const pct = on ? Math.round((t.banner ? (t.bz == null ? 1 : t.bz) : (t.z == null ? 1 : t.z)) * 100) : 100; zoomRange.value = pct; zoomRange.setAttribute('aria-valuenow', pct); zoomRange.setAttribute('aria-valuetext', on ? pct + '%' : 'inactive'); const lbl = document.getElementById('zoomVal'); if (lbl) lbl.textContent = on ? pct + '%' : '—'; }
+function syncZoom() {
+  const t = active != null ? tiles[active] : null; const on = !!t;
+  zoomRange.disabled = !on;
+  const pct = on ? Math.round((t.banner ? (t.bz == null ? 1 : t.bz) : (t.z == null ? 1 : t.z)) * 100) : 100;
+  zoomRange.value = pct; zoomRange.setAttribute('aria-valuenow', pct); zoomRange.setAttribute('aria-valuetext', on ? pct + '%' : 'inactive');
+  const lbl = document.getElementById('zoomPct');
+  if (!lbl) return;
+  if (document.activeElement !== lbl) lbl.textContent = on ? pct + '%' : '—';
+  lbl.contentEditable = on ? 'true' : 'false';
+  lbl.style.cursor = on ? 'text' : 'default';
+  lbl.style.background = on ? 'rgba(255,255,255,.06)' : 'transparent';
+  // sync mobile zoom strip
+  const mr = document.getElementById('zoomRangeMob'); if (mr) { mr.disabled = !on; mr.value = pct; }
+  const mp = document.getElementById('zoomPctMob'); if (mp) mp.textContent = on ? pct + '%' : '—';
+}
+
+(function wireZoomInput() {
+  const apply = () => {
+    const lbl = document.getElementById('zoomPct'); if (!lbl) return;
+    const raw = lbl.textContent.replace(/[^0-9]/g, '');
+    const pct = Math.min(500, Math.max(100, parseInt(raw) || 100));
+    if (active == null) return;
+    const t = tiles[active]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
+    const z = pct / 100;
+    if (t.banner) { setBanner(t.banner.row, { bz: clamp(z, 1, ZMAX) }); refreshBannerRow(t.banner.row); }
+    else { t.z = clamp(z, ZMIN, ZMAX); clampPan(t, a); const c = grid.children[active]; if (c) { const im = c.querySelector('img'); if (im) applyImg(im, t, a, dims()); } }
+    syncZoom(); commit();
+  };
+  document.addEventListener('focusin', e => { if (e.target.id === 'zoomPct') { const lbl = e.target; lbl.textContent = lbl.textContent.replace('%',''); document.execCommand('selectAll', false, null); lbl.style.background = 'rgba(255,68,56,.15)'; lbl.style.color = 'var(--accent)'; } });
+  document.addEventListener('focusout', e => { if (e.target.id === 'zoomPct') { const lbl = e.target; lbl.style.color = 'var(--text-dim)'; apply(); } });
+  document.addEventListener('keydown', e => { if (e.target.id !== 'zoomPct') return; if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } if (e.key === 'Escape') { e.target.blur(); syncZoom(); } if (!/[0-9]|Backspace|Delete|ArrowLeft|ArrowRight|Tab/.test(e.key) && !e.metaKey && !e.ctrlKey) e.preventDefault(); });
+})();
 zoomRange.addEventListener('input', e => {
   if (active == null) return; const t = tiles[active]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
   if (t.banner) { setBanner(t.banner.row, { bz: clamp(parseInt(e.target.value) / 100, 1, ZMAX) }); refreshBannerRow(t.banner.row); debHist(); return; }
   t.z = clamp(parseInt(e.target.value) / 100, ZMIN, ZMAX); clampPan(t, a);
   const c = grid.children[active]; if (c) { const im = c.querySelector('img'); if (im) applyImg(im, t, a, dims()); }
   debHist();
+});
+// mobile zoom range — same logic, shared via shared handler reference
+document.addEventListener('input', e => {
+  if (e.target.id !== 'zoomRangeMob') return;
+  zoomRange.value = e.target.value;
+  zoomRange.dispatchEvent(new Event('input'));
 });
 
 /* ---------- export ---------- */
@@ -1173,6 +1276,34 @@ $('randomBtn').addEventListener('click', () => {
 });
 $('exportBtn').addEventListener('click', () => { if (filled().length) openExport(); });
 $('exportBtnMobile').addEventListener('click', () => { if (filled().length) openExport(); });
+
+/* ---------- tap-to-assign (mobile) ---------- */
+let assignTarget = -1;   // grid cell index waiting for a photo tap
+
+function enterAssign(i) {
+  assignTarget = i;
+  // highlight the cell
+  [...grid.children].forEach((c, idx) => c.classList.toggle('assign-target', idx === i));
+  // highlight all tray chips as tappable
+  document.querySelectorAll('.chip').forEach(c => c.classList.add('assign-ready'));
+  // show hint
+  const hint = document.getElementById('assignHint');
+  if (hint) { hint.style.display = 'block'; hint.textContent = 'tap a photo above to place it — or tap × to cancel'; }
+}
+
+function exitAssign() {
+  assignTarget = -1;
+  [...grid.children].forEach(c => c.classList.remove('assign-target'));
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('assign-ready'));
+  const hint = document.getElementById('assignHint');
+  if (hint) hint.style.display = 'none';
+}
+
+function nextEmptyCell(from) {
+  for (let i = from + 1; i < total; i++) if (!tiles[i]) return i;
+  for (let i = 0; i < from; i++) if (!tiles[i]) return i;
+  return -1;
+}
 function setExportMode(m) {
   $('expMode').querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.m === m));
   $('paneImages').hidden = m !== 'images';
@@ -1213,7 +1344,7 @@ undoBtn.addEventListener('click', undo); redoBtn.addEventListener('click', redo)
 $('rowsSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('rowsSeg').querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active'); setRows(parseInt(b.dataset.rows)); }));
 $('ratioSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('ratioSeg').querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active'); setRatio(parseInt(b.dataset.rw), parseInt(b.dataset.rh)); }));
 window.addEventListener('keydown', e => { const m = e.ctrlKey || e.metaKey; if (m && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); } else if (m && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); } });
-document.querySelector('.stage').addEventListener('pointerdown', e => { if (e.target.classList.contains('stage') || e.target.classList.contains('phone') || e.target.classList.contains('grid')) setActive(null); });
+document.querySelector('.stage').addEventListener('pointerdown', e => { if (e.target.classList.contains('stage') || e.target.classList.contains('phone') || e.target.classList.contains('grid')) { if (assignTarget >= 0) exitAssign(); setActive(null); } });
 let rt = null; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 120); });
 
 /* ---------- export the whole profile as one PNG (hand-drawn, no libs) ---------- */
