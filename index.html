@@ -237,6 +237,8 @@
   .row-ghost-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .row-drop-above { box-shadow: inset 0 3px 0 var(--accent); }
   .row-drop-below { box-shadow: inset 0 -3px 0 var(--accent); }
+  .cell.row-drop-above { outline: none; box-shadow: inset 0 4px 0 var(--accent); z-index: 8; }
+  .cell.row-drop-below { outline: none; box-shadow: inset 0 -4px 0 var(--accent); z-index: 8; }
   .cell {
     position: relative; overflow: hidden; background: #191a1c;
     aspect-ratio: var(--ratio); touch-action: manipulation; user-select: none;
@@ -819,10 +821,13 @@ function buildRowGhost(r) {
 }
 
 function rowAt(clientY) {
-  const grips = document.querySelectorAll('.row-grip');
-  for (let i = 0; i < grips.length; i++) { const r = grips[i].getBoundingClientRect(); if (clientY >= r.top && clientY <= r.bottom) return i; }
-  // fallback: check grid cells
-  for (let i = 0; i < grid.children.length; i++) { const r = grid.children[i].getBoundingClientRect(); if (clientY >= r.top && clientY <= r.bottom) return Math.floor(i / 3); }
+  // Use leftmost cell of each row — always exists, reliably sized
+  for (let r = 0; r < rows; r++) {
+    const cell = grid.children[r * 3];
+    if (!cell) continue;
+    const rect = cell.getBoundingClientRect();
+    if (clientY >= rect.top && clientY <= rect.bottom) return r;
+  }
   return -1;
 }
 
@@ -831,8 +836,9 @@ function clearRowHints() { document.querySelectorAll('.row-drop-above,.row-drop-
 function hintRow(targetRow, srcRow) {
   clearRowHints();
   if (targetRow < 0 || targetRow === srcRow) return;
-  const grips = document.querySelectorAll('.row-grip');
-  if (grips[targetRow]) grips[targetRow].classList.add(targetRow < srcRow ? 'row-drop-above' : 'row-drop-below');
+  // Add indicator to the leftmost cell of the target row
+  const cell = grid.children[targetRow * 3];
+  if (cell) cell.classList.add(targetRow < srcRow ? 'row-drop-above' : 'row-drop-below');
 }
 
 function renderRowGrips() {
