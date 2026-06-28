@@ -119,6 +119,7 @@
   .btn-accent:disabled { opacity: 1; background: #3a1714; color: var(--text-dim); border-color: #3a1714; }
   #mobileBar { display: none; }
   #assignHint { display: none; }
+  #mobileZoomRow { display: none; }
   .mobile-zoom-strip { display: none; }
   .cell.assign-target { outline: 2px solid var(--accent) !important; outline-offset: -2px; animation: assignPulse 1s ease-in-out infinite; }
   .chip.assign-ready { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -190,7 +191,7 @@
     background: #1c1c1e; border: 2px solid var(--accent); overflow: hidden;
     display: flex; align-items: center; justify-content: center;
   }
-  .avatar img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: none; transform-origin: center center; user-select: none; pointer-events: none; }
   .avatar.has img { display: block; }
   .avatar .avatar-plus { color: var(--text-dim); font-size: 24px; font-weight: 300; }
   .avatar.has .avatar-plus { display: none; }
@@ -211,8 +212,8 @@
   .hl-row { display: flex; gap: 14px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px; }
   .hl-row[hidden] { display: none; }
   .hl { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; position: relative; }
-  .hl-circle { width: 56px; height: 56px; border-radius: 50%; background: #1c1c1e; border: 1px solid var(--border-bright); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 20px; }
-  .hl-circle img { width: 100%; height: 100%; object-fit: cover; }
+  .hl-circle { width: 56px; height: 56px; border-radius: 50%; background: #1c1c1e; border: 1px solid var(--border-bright); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-size: 20px; position: relative; }
+  .hl-circle img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; transform-origin: center center; pointer-events: none; user-select: none; display: block; }
   .hl-label { font-size: 10px; color: var(--text-dim); outline: none; max-width: 60px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hl-label:focus { color: var(--text); }
   .hl-del { position: absolute; top: -4px; right: -2px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #000; border: none; font-size: 10px; line-height: 1; cursor: pointer; display: none; }
@@ -267,6 +268,7 @@
   .tools button:hover { border-color: var(--accent); color: #fff; }
   .tools button.span-btn { border-color: #8a6a00; color: #e0a020; }
   .tools button.span-btn:hover { border-color: #e0a020; color: #ffc24d; }
+  .tools button.replace-btn { display: none; }  /* desktop: hidden — use tray drag instead */
 
   .hint { margin-top: 10px; font-size: 11px; color: #8a8a8f; text-align: center; line-height: 1.7; }
   .rail { width: clamp(280px, 19vw, 360px); flex-shrink: 0; background: var(--surface); border-left: 1px solid var(--border); overflow-y: auto; padding: 22px 18px; display: flex; flex-direction: column; gap: 28px; }
@@ -364,28 +366,21 @@
     #clearBtn { flex: 2 1 auto; }
     #randomBtn { flex: 2 1 auto; }
     #exportBtn { display: none; }
-    .sidebar { order: 1; width: 100%; flex-direction: column; height: auto; border-right: none; border-bottom: 1px solid var(--border); align-items: stretch; }
-    .dropzone { margin: 8px 16px; padding: 8px 14px; min-width: 0; max-width: none; width: auto; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 8px; background: #1a0f0e; border: 1.5px dashed var(--accent); border-radius: 6px; white-space: nowrap; }
-    .dropzone strong { font-size: 12px; display: inline; }
-    .dropzone span { display: inline; font-size: 10px; margin-top: 0; overflow: hidden; text-overflow: ellipsis; }
-    .tray { flex: none; width: 100%; flex-direction: row; align-items: center; padding: 0 16px 10px; gap: 10px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
-    .tray::-webkit-scrollbar { height: 3px; }
-    .tray::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
-    .tray::-webkit-scrollbar-track { background: transparent; }
-    .tray-hint { flex-shrink: 0; color: var(--text-dim); font-size: 10px; letter-spacing: 1px; padding: 0 4px 0 8px; opacity: .7; pointer-events: none; white-space: nowrap; }
-    .tray:empty, .tray-empty { padding-left: 16px; }
-    .stage { order: 2; flex: none; overflow: visible; padding: 12px 8px 30px; }
-    .phone { width: 100%; padding: 10px; margin: 0; }
-    #mobileBar { order: 4; display: flex; flex-direction: column; position: static; background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; gap: 0; }
-    #zoomBlock { display: none; }
-    .mobile-zoom-strip { display: flex; align-items: center; gap: 8px; padding: 10px 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+    /* hide entire sidebar on mobile — per-cell pickers replace it */
+    .sidebar { display: none; }
+    /* zoom row lives in the header, below the action buttons */
+    #mobileZoomRow { display: flex; align-items: center; gap: 8px; padding: 8px 2px 2px; border-top: 1px solid var(--border); margin-top: 2px; }
     .mz-label { font-size: 9px; letter-spacing: 2px; color: var(--accent); flex-shrink: 0; }
     .zoom-out-lbl, .zoom-in-lbl { font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
     #zoomRangeMob { flex: 1; height: 3px; background: #2c2c2e; -webkit-appearance: none; appearance: none; border-radius: 2px; }
     #zoomRangeMob:disabled { opacity: .4; }
     #zoomRangeMob::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; background: var(--accent); border-radius: 3px; cursor: pointer; }
     #zoomRangeMob::-moz-range-thumb { width: 15px; height: 15px; background: var(--accent); border: none; border-radius: 3px; cursor: pointer; }
-    .mz-pct { font-size: 11px; color: var(--text-dim); min-width: 36px; text-align: right; flex-shrink: 0; letter-spacing: .5px; }
+    .mz-pct { font-size: 11px; color: var(--text-dim); min-width: 36px; text-align: right; flex-shrink: 0; letter-spacing: .5px; border-radius: 3px; padding: 1px 4px; outline: none; display: inline-block; text-align: center; cursor: default; }
+    .stage { order: 2; flex: none; overflow: visible; padding: 12px 8px 30px; }
+    .phone { width: 100%; padding: 10px; margin: 0; }
+    #mobileBar { order: 4; display: flex; flex-direction: column; position: static; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 10px 16px; gap: 0; }
+    #zoomBlock { display: none; }
     #assignHint { display: block; font-size: 11px; color: var(--accent); text-align: center; padding: 4px 0 8px; letter-spacing: .5px; animation: assignPulse 1.2s ease-in-out infinite; }
     #exportBtnMobile { display: block; width: 100%; padding: 14px; font-size: 13px; font-weight: 700; letter-spacing: .5px; }
     .rail { order: 5; width: 100%; border-left: none; border-top: 1px solid var(--border); overflow: visible; padding: 20px 16px; }
@@ -396,7 +391,8 @@
   }
   @media (max-width: 680px) {
     .row-grips { display: none; }
-    .row-move-wrap { display: flex; bottom: 6px; top: auto; left: 6px; transform: none; }  /* always visible on mobile, bottom-left to avoid check circle */
+    .row-move-wrap { display: flex; bottom: 6px; top: auto; left: 6px; transform: none; opacity: 0.3; }
+    .cell.active .row-move-wrap { opacity: 1; }
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
     .site-footer .sf-ico { width: 15px; height: 15px; }
@@ -407,8 +403,13 @@
     .desk { display: none; }
     .grip, .check { width: 30px; height: 30px; }
     .zoombar .zoom input[type=range] { width: 150px; }
+    /* mobile cell UX: tappable plus, replace button, always-visible tools on active */
+    .cell .plus { pointer-events: auto; cursor: pointer; font-size: 24px; color: #5a5b60; }
+    .cell.has .plus { pointer-events: none; }
+    .cell.active .tools { opacity: 1; }
+    .tools button.replace-btn { display: flex; }
   }
-  @media (min-width: 821px) { .touch { display: none; } }
+  @media (min-width: 821px) { .touch { display: none; } #assignHint { display: none !important; } }
 
   .site-footer { background: var(--bg); padding: 40px 24px 36px; text-align: center; }
   .sf-wrap { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 9px; }
@@ -463,6 +464,14 @@
       <button id="randomBtn" class="btn" title="Shuffle placed tiles (undoable)">⟳ RANDOM</button>
       <button id="exportBtn" class="btn btn-accent" disabled>↓ EXPORT</button>
     </div>
+    <!-- Mobile zoom row — shown only on mobile, sits under the buttons -->
+    <div id="mobileZoomRow">
+      <span class="mz-label">ZOOM</span>
+      <span class="zoom-out-lbl">OUT</span>
+      <input type="range" id="zoomRangeMob" min="0" max="500" value="100" disabled>
+      <span class="zoom-in-lbl">IN</span>
+      <span id="zoomPctMob" class="mz-pct">—</span>
+    </div>
   </div>
 
   <div class="shell">
@@ -485,7 +494,7 @@
 
         <div class="prof">
           <div class="prof-row">
-            <div class="avatar" id="avatar" title="Upload profile photo">
+            <div class="avatar" id="avatar" title="Click to upload · drag to crop · double-tap to replace">
               <img id="avatarImg" alt="">
               <span class="avatar-plus">+</span>
             </div>
@@ -547,15 +556,8 @@
         <details><summary>Is it open source?</summary><p>Yes — one readable file. <a href="https://github.com/chrisvrakas/mkgrid" target="_blank" rel="noopener">Read or fork it on GitHub ↗</a></p></details>
       </div>
     </aside>
-    <!-- Mobile export bar — zoom strip + export button, sits between grid and tips/FAQ -->
+    <!-- Mobile export bar — export button only -->
     <div id="mobileBar">
-      <div id="mobileZoom" class="mobile-zoom-strip">
-        <span class="mz-label">ZOOM</span>
-        <span class="zoom-out-lbl">OUT</span>
-        <input type="range" id="zoomRangeMob" min="0" max="500" value="100" disabled>
-        <span class="zoom-in-lbl">IN</span>
-        <span id="zoomPctMob" class="mz-pct">—</span>
-      </div>
       <div id="assignHint" style="display:none;">tap a photo above to place it</div>
       <button id="exportBtnMobile" class="btn btn-accent" disabled>↓ EXPORT</button>
     </div>
@@ -729,7 +731,19 @@ function render() {
     const grip = document.createElement('div'); grip.className = 'grip'; grip.textContent = '⠿';
     const check = document.createElement('div'); check.className = 'check'; check.innerHTML = '<svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>';
     const tools = document.createElement('div'); tools.className = 'tools';
-    cell.append(img, plus, grip, check, tools);
+    // per-cell file input for mobile direct-upload
+    const cellInput = document.createElement('input'); cellInput.type = 'file'; cellInput.accept = 'image/*'; cellInput.hidden = true;
+    const cellIdx = i; // capture for closure
+    cellInput.addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return; cellInput.value = '';
+      addFileToCell(file, cellIdx);
+    });
+    // tapping the + on an empty cell opens the picker directly on mobile
+    plus.addEventListener('click', e => {
+      e.stopPropagation();
+      cellInput.click();
+    });
+    cell.append(img, plus, grip, check, tools, cellInput);
 
     if (t && t.imgId) {
       const a = lib.find(x => x.id === t.imgId);
@@ -744,6 +758,9 @@ function render() {
         } else {
           const rm = mkBtn('✕', () => { tiles[i] = null; sel.delete(i); if (active === i) active = null; render(); updateExportUI(); syncZoom(); commit(); });
           tools.append(rm);
+          // mobile replace button — opens per-cell picker
+          const rpl = mkBtn('⊕', () => { cellInput.click(); }); rpl.className = 'replace-btn'; rpl.title = 'Replace photo'; rpl.setAttribute('aria-label', 'Replace photo');
+          tools.append(rpl);
           if (i % 3 === 0 && i + 2 < total) {
             const sp = mkBtn('⟐ SPAN', () => spanRow(Math.floor(i / 3), t.imgId)); sp.classList.add('span-btn');
             tools.append(sp);
@@ -769,6 +786,9 @@ function render() {
     grid.appendChild(cell);
   }
   renderRowGrips();
+  // keep posts count in sync with filled tiles (only if user hasn't manually edited it)
+  const postsEl = document.querySelector('[data-f="posts"]');
+  if (postsEl && document.activeElement !== postsEl) postsEl.textContent = filled().length;
 }
 
 /* ---------- row grip / row reorder ---------- */
@@ -867,11 +887,17 @@ const distp = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
 function wireCell(cell, i) {
   cell.addEventListener('pointerdown', e => {
-    if (e.target.closest('.grip, .check, .tools')) return;
+    if (e.target.closest('.grip, .check, .tools, .plus')) return;
     const t = tiles[i];
     // tap-to-assign: empty cell on touch enters assign mode
     if (!t) {
-      if (e.pointerType !== 'mouse' && lib.length > 0) { e.preventDefault(); setActive(i); enterAssign(i); return; }
+      if (e.pointerType !== 'mouse') {
+        e.preventDefault(); setActive(i);
+        // if photos already in tray, use assign mode; otherwise open direct picker
+        if (lib.length > 0) { enterAssign(i); }
+        else { const ci = cell.querySelector('input[type=file]'); if (ci) ci.click(); }
+        return;
+      }
       setActive(i); return;
     }
     // tap anywhere while in assign mode cancels it
@@ -1024,19 +1050,18 @@ function downscale(dataURL, maxSide, mime) {
 const blobCache = {};   // imgId → blobURL (in-memory, for iOS display)
 
 function cacheDisplayBlob(id, source) {
-  // source = File object OR dataURL string
+  if (!id || !source) return;
   if (blobCache[id]) { try { URL.revokeObjectURL(blobCache[id]); } catch (_) {} }
   try {
     if (source instanceof Blob || source instanceof File) {
       blobCache[id] = URL.createObjectURL(source);
     } else if (typeof source === 'string' && source.startsWith('data:')) {
-      // Reconstruct blob from dataURL (for IndexedDB restore)
       const [head, data] = source.split(',');
-      const mime = head.match(/:(.*?);/)[1];
+      const m = head && head.match(/:(.*?);/); if (!m) return;
       const bytes = atob(data);
       const arr = new Uint8Array(bytes.length);
       for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-      blobCache[id] = URL.createObjectURL(new Blob([arr], { type: mime }));
+      blobCache[id] = URL.createObjectURL(new Blob([arr], { type: m[1] }));
     }
   } catch (_) {}
 }
@@ -1065,13 +1090,28 @@ function addFile(file) {
   r.readAsDataURL(file);
 }
 
+function addFileToCell(file, cellIdx) {
+  if (!file.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = async e => {
+    const ds = await downscale(e.target.result, 2400, file.type);
+    if (!ds.w || !ds.h) return;
+    const id = (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + '-' + Math.random());
+    cacheDisplayBlob(id, file);
+    const a = { id, name: file.name, src: ds.src, w: ds.w, h: ds.h }; lib.push(a); put('assets', a);
+    placeAsset(cellIdx, id);   // place directly — no tray tap needed
+    renderTray();
+  };
+  r.readAsDataURL(file);
+}
+
 window.addEventListener('beforeunload', () => { Object.keys(blobCache).forEach(revokeBlobURL); });
 function renderTray() {
   tray.innerHTML = '';
   if (!lib.length) { tray.innerHTML = '<div class="tray-empty">no photos yet</div>'; return; }
   lib.forEach(a => {
     const el = document.createElement('div'); el.className = 'chip';
-    const img = document.createElement('img'); img.alt = a.name ? `Photo: ${a.name}` : 'Uploaded photo'; setImgSrc(img, a);
+    const img = document.createElement('img'); img.alt = a.name ? `Photo: ${a.name}` : 'Uploaded photo'; img.title = a.name || ''; setImgSrc(img, a);
     const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = a.name.length > 22 ? a.name.slice(0, 19) + '…' : a.name;
     const x = document.createElement('button'); x.className = 'del'; x.textContent = '✕';
     x.addEventListener('click', e => { e.stopPropagation(); lib = lib.filter(l => l.id !== a.id); del('assets', a.id); revokeBlobURL(a.id); let touched = false; for (let j = 0; j < tiles.length; j++) if (tiles[j] && tiles[j].imgId === a.id) { tiles[j] = null; sel.delete(j); touched = true; } if (touched) normalizeBanners(); render(); renderTray(); updateExportUI(); if (touched) commit(); });
@@ -1098,12 +1138,19 @@ function syncZoom() {
   lbl.style.background = on ? 'rgba(255,255,255,.06)' : 'transparent';
   // sync mobile zoom strip
   const mr = document.getElementById('zoomRangeMob'); if (mr) { mr.disabled = !on; mr.value = pct; }
-  const mp = document.getElementById('zoomPctMob'); if (mp) mp.textContent = on ? pct + '%' : '—';
+  const mp = document.getElementById('zoomPctMob');
+  if (mp) {
+    if (document.activeElement !== mp) mp.textContent = on ? pct + '%' : '—';
+    const mobEdit = on && window.innerWidth > 820; // no keyboard popup on mobile
+    mp.contentEditable = mobEdit ? 'true' : 'false';
+    mp.style.cursor = mobEdit ? 'text' : 'default';
+    mp.style.background = mobEdit ? 'rgba(255,255,255,.06)' : 'transparent';
+  }
 }
 
 (function wireZoomInput() {
-  const apply = () => {
-    const lbl = document.getElementById('zoomPct'); if (!lbl) return;
+  const PCT_IDS = ['zoomPct', 'zoomPctMob'];
+  const apply = (lbl) => {
     const raw = lbl.textContent.replace(/[^0-9]/g, '');
     const pct = Math.min(500, Math.max(100, parseInt(raw) || 100));
     if (active == null) return;
@@ -1113,9 +1160,22 @@ function syncZoom() {
     else { t.z = clamp(z, ZMIN, ZMAX); clampPan(t, a); const c = grid.children[active]; if (c) { const im = c.querySelector('img'); if (im) applyImg(im, t, a, dims()); } }
     syncZoom(); commit();
   };
-  document.addEventListener('focusin', e => { if (e.target.id === 'zoomPct') { const lbl = e.target; lbl.textContent = lbl.textContent.replace('%',''); document.execCommand('selectAll', false, null); lbl.style.background = 'rgba(255,68,56,.15)'; lbl.style.color = 'var(--accent)'; } });
-  document.addEventListener('focusout', e => { if (e.target.id === 'zoomPct') { const lbl = e.target; lbl.style.color = 'var(--text-dim)'; apply(); } });
-  document.addEventListener('keydown', e => { if (e.target.id !== 'zoomPct') return; if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } if (e.key === 'Escape') { e.target.blur(); syncZoom(); } if (!/[0-9]|Backspace|Delete|ArrowLeft|ArrowRight|Tab/.test(e.key) && !e.metaKey && !e.ctrlKey) e.preventDefault(); });
+  document.addEventListener('focusin', e => {
+    if (!PCT_IDS.includes(e.target.id)) return;
+    const lbl = e.target; lbl.textContent = lbl.textContent.replace('%','');
+    document.execCommand('selectAll', false, null);
+    lbl.style.background = 'rgba(255,68,56,.15)'; lbl.style.color = 'var(--accent)';
+  });
+  document.addEventListener('focusout', e => {
+    if (!PCT_IDS.includes(e.target.id)) return;
+    const lbl = e.target; lbl.style.color = 'var(--text-dim)'; apply(lbl);
+  });
+  document.addEventListener('keydown', e => {
+    if (!PCT_IDS.includes(e.target.id)) return;
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+    if (e.key === 'Escape') { e.target.blur(); syncZoom(); }
+    if (!/[0-9]|Backspace|Delete|ArrowLeft|ArrowRight|Tab/.test(e.key) && !e.metaKey && !e.ctrlKey) e.preventDefault();
+  });
 })();
 zoomRange.addEventListener('input', e => {
   if (active == null) return; const t = tiles[active]; if (!t) return; const a = lib.find(x => x.id === t.imgId); if (!a) return;
@@ -1124,11 +1184,13 @@ zoomRange.addEventListener('input', e => {
   const c = grid.children[active]; if (c) { const im = c.querySelector('img'); if (im) applyImg(im, t, a, dims()); }
   debHist();
 });
-// mobile zoom range — same logic, shared via shared handler reference
+// mobile zoom range — delegates to desktop handler, then syncs label immediately
 document.addEventListener('input', e => {
   if (e.target.id !== 'zoomRangeMob') return;
   zoomRange.value = e.target.value;
   zoomRange.dispatchEvent(new Event('input'));
+  const mp = document.getElementById('zoomPctMob');
+  if (mp && document.activeElement !== mp) mp.textContent = e.target.value + '%';
 });
 
 /* ---------- export ---------- */
@@ -1188,9 +1250,40 @@ async function downloadSingle() {
   const i = list[0], blob = await renderTileBlob(i, fmt); if (!blob) return;
   dl(blob, `grid_${String(i + 1).padStart(2, '0')}.${fmt === 'jpg' ? 'jpg' : 'png'}`);
 }
+/* render a circle-cropped image to a square canvas at exportW px */
+async function renderCircleBlob(cropState, exportW, fmt) {
+  const cv = normAvatar(cropState); if (!cv || !cv.src) return null;
+  const c = document.createElement('canvas'); c.width = exportW; c.height = exportW;
+  const ctx = c.getContext('2d');
+  let im; try { im = await loadImg(cv.src); } catch(e) { return null; }
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, exportW, exportW);
+  const z = cv.z || 1;
+  // match object-fit:cover + object-position + scale(z)
+  const scale = Math.max(exportW / im.width, exportW / im.height) * z;
+  const dw = im.width * scale, dh = im.height * scale;
+  // pan is a fraction of the unscaled container; divide by z to match CSS scale(z) + object-position
+  const px = 0.5 + (cv.panX || 0) / z;
+  const py = 0.5 + (cv.panY || 0) / z;
+  const ox = (exportW - dw) * px;
+  const oy = (exportW - dh) * py;
+  ctx.drawImage(im, ox, oy, dw, dh);
+  return await new Promise(r => c.toBlob(r, fmt === 'jpg' ? 'image/jpeg' : 'image/png', fmt === 'jpg' ? 0.92 : undefined));
+}
+
 async function exportZip() {
   const fmt = selectedFmt(), ext = fmt === 'jpg' ? 'jpg' : 'png', files = [];
+  // grid tiles
   for (const i of selList()) { const blob = await renderTileBlob(i, fmt); if (!blob) continue; files.push({ name: `grid_${String(i + 1).padStart(2, '0')}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()) }); }
+  // avatar
+  const avBlob = await renderCircleBlob(profile.avatar, 1080, fmt);
+  if (avBlob) files.push({ name: `profile_image.${ext}`, data: new Uint8Array(await avBlob.arrayBuffer()) });
+  // highlight covers
+  for (let hi = 0; hi < profile.highlights.length; hi++) {
+    const h = profile.highlights[hi];
+    if (!h.cover) continue;
+    const hBlob = await renderCircleBlob(h.cover, 1080, fmt);
+    if (hBlob) files.push({ name: `highlight_cover_${String(hi + 1).padStart(2, '0')}_${(h.label || 'cover').replace(/[^\w.-]/g, '_')}.${ext}`, data: new Uint8Array(await hBlob.arrayBuffer()) });
+  }
   if (!files.length) return;
   dl(new Blob([buildZip(files)], { type: 'application/zip' }), `${(profile.handle || 'feed').replace(/[^\w.-]/g, '_')}_tiles.zip`);
 }
@@ -1262,10 +1355,7 @@ window.addEventListener('drop', e => { if (e.target === document.body) e.prevent
 
 $('clearBtn').addEventListener('click', () => {
   if (!filled().length) return;
-  let ok = true;
-  try { ok = window.confirm('Clear the grid? Your photos stay in the tray, and you can undo this.'); }
-  catch (e) { ok = true; }
-  if (ok) { tiles = Array(total).fill(null); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit(); }
+  tiles = Array(total).fill(null); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit(); flashSaved();
 });
 $('randomBtn').addEventListener('click', () => {
   const f = filled(); if (!f.length) return;
@@ -1343,7 +1433,16 @@ exportModal.addEventListener('click', e => { if (e.target === exportModal) close
 undoBtn.addEventListener('click', undo); redoBtn.addEventListener('click', redo);
 $('rowsSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('rowsSeg').querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active'); setRows(parseInt(b.dataset.rows)); }));
 $('ratioSeg').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('ratioSeg').querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active'); setRatio(parseInt(b.dataset.rw), parseInt(b.dataset.rh)); }));
-window.addEventListener('keydown', e => { const m = e.ctrlKey || e.metaKey; if (m && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); } else if (m && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); } });
+window.addEventListener('keydown', e => {
+  const m = e.ctrlKey || e.metaKey;
+  if (m && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if (m && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); }
+  else if ((e.key === 'Delete' || e.key === 'Backspace') && sel.size > 0) {
+    const tag = document.activeElement && document.activeElement.tagName;
+    const editable = document.activeElement && (document.activeElement.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA');
+    if (!editable) { e.preventDefault(); sel.forEach(i => { tiles[i] = null; }); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit(); }
+  }
+});
 document.querySelector('.stage').addEventListener('pointerdown', e => { if (e.target.classList.contains('stage') || e.target.classList.contains('phone') || e.target.classList.contains('grid')) { if (assignTarget >= 0) exitAssign(); setActive(null); } });
 let rt = null; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 120); });
 
@@ -1495,23 +1594,133 @@ let profSaveT = null;
 function saveProfile() { if (!ok) return; clearTimeout(profSaveT); profSaveT = setTimeout(() => { put('state', { key: 'profile', data: profile }); flashSaved(); }, 300); }
 const TEXT_FIELDS = ['handle', 'name', 'bio', 'link', 'posts', 'following', 'followers'];
 
+/* normalise avatar/cover to {src, panX, panY, z} — handles old string-only format */
+function normAvatar(v) {
+  if (!v) return null;
+  if (typeof v === 'string') return { src: v, panX: 0, panY: 0, z: 1 };
+  return { src: v.src || '', panX: v.panX || 0, panY: v.panY || 0, z: v.z || 1 };
+}
+function normCover(v) { return normAvatar(v); }
+
+/* apply pan+zoom to an img inside a circle — uses object-position for pan, scale for zoom */
+function applyCircleImg(img, state, diam) {
+  if (!img || !state) return;
+  const z = state.z || 1;
+  // panX/panY are -0.5..0.5 fractions; convert to % offset from center for object-position
+  const px = 50 + (state.panX || 0) * 100;
+  const py = 50 + (state.panY || 0) * 100;
+  img.style.objectPosition = `${px}% ${py}%`;
+  img.style.transform = `scale(${z})`;
+}
+
+/* wire pan+pinch on a circle element, calling onUpdate({panX,panY,z}) and onCommit() */
+function wireCircleCrop(el, getState, onUpdate, onCommit) {
+  const pg = { mode: null, pts: new Map(), pX: 0, pY: 0, z: 1, dist: 0, sx: 0, sy: 0 };
+  el.addEventListener('pointerdown', e => {
+    if (e.target.closest('.hl-del, .avatar-plus')) return;
+    const st = getState(); if (!st) return; // no image yet — let click fire
+    e.preventDefault(); e.stopPropagation();
+    pg.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pg.pts.size === 2) {
+      const p = [...pg.pts.values()]; pg.mode = 'pinch'; pg.dist = Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y); pg.z = st.z || 1;
+    } else {
+      pg.mode = 'pan'; pg.pX = st.panX || 0; pg.pY = st.panY || 0; pg.sx = e.clientX; pg.sy = e.clientY;
+    }
+    try { el.setPointerCapture(e.pointerId); } catch(_) {}
+  });
+  el.addEventListener('pointermove', e => {
+    if (!pg.mode || !pg.pts.has(e.pointerId)) return;
+    pg.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const st = getState(); if (!st) return;
+    const diam = el.offsetWidth || 76;
+    if (pg.mode === 'pinch' && pg.pts.size >= 2) {
+      const p = [...pg.pts.values()]; const d = Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y);
+      const z = clamp(pg.z * d / (pg.dist || 1), 1, 8);
+      onUpdate({ z }); e.preventDefault();
+    } else if (pg.mode === 'pan') {
+      // pan expressed as fraction of container diameter, clamped to ±0.5
+      const dx = (e.clientX - pg.sx) / diam;
+      const dy = (e.clientY - pg.sy) / diam;
+      const panX = clamp(pg.pX + dx, -0.5, 0.5);
+      const panY = clamp(pg.pY + dy, -0.5, 0.5);
+      onUpdate({ panX, panY }); e.preventDefault();
+    }
+  });
+  const end = e => {
+    pg.pts.delete(e.pointerId);
+    if (pg.pts.size === 0) { pg.mode = null; if (getState()) onCommit(); }
+    else if (pg.mode === 'pinch' && pg.pts.size < 2) { const p = [...pg.pts.values()][0]; pg.mode = 'pan'; pg.sx = p.x; pg.sy = p.y; const st = getState(); if (st) { pg.pX = st.panX||0; pg.pY = st.panY||0; } }
+  };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+}
+
 function wireProfile() {
   document.querySelectorAll('[data-f]').forEach(el => {
     const f = el.dataset.f;
     el.addEventListener('blur', () => { profile[f] = el.innerText.replace(/\s+$/, ''); saveProfile(); });
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && f !== 'bio') { e.preventDefault(); el.blur(); } });
   });
-  $('avatar').addEventListener('click', () => $('avatarInput').click());
-  $('avatarInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = async ev => { profile.avatar = ev.target.result; applyProfile(); saveProfile(); }; r.readAsDataURL(file); $('avatarInput').value = ''; });
+
+  const avatarEl = $('avatar'), avatarImg = $('avatarImg');
+  // click to upload (only when no image, or long-press replaced by crop interaction)
+  avatarEl.addEventListener('click', e => {
+    if (profile.avatar) return; // has image — pointer events handled by wireCircleCrop
+    $('avatarInput').click();
+  });
+  $('avatarInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader(); r.onload = ev => { profile.avatar = { src: ev.target.result, panX: 0, panY: 0, z: 1 }; applyProfile(); saveProfile(); };
+    r.readAsDataURL(file); $('avatarInput').value = '';
+  });
+  wireCircleCrop(avatarEl,
+    () => normAvatar(profile.avatar),
+    upd => { if (!profile.avatar) return; profile.avatar = Object.assign(normAvatar(profile.avatar), upd); applyAvatarImg(); },
+    () => saveProfile()
+  );
+  // double-tap / long-press to replace avatar
+  let avatarTapT = 0;
+  avatarEl.addEventListener('click', e => {
+    if (!profile.avatar) return;
+    const now = Date.now();
+    if (now - avatarTapT < 500) { $('avatarInput').click(); avatarTapT = 0; } else avatarTapT = now;
+  });
+
   $('hlToggle').addEventListener('click', () => { profile.hlOpen = !profile.hlOpen; applyHighlights(); saveProfile(); });
-  $('hlInput').addEventListener('change', e => { const file = e.target.files[0]; if (!file || !hlTarget) return; const r = new FileReader(); r.onload = async ev => { const h = profile.highlights.find(x => x.id === hlTarget); if (h) { h.cover = ev.target.result; applyHighlights(); saveProfile(); } hlTarget = null; }; r.readAsDataURL(file); $('hlInput').value = ''; });
+  $('hlInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file || !hlTarget) return;
+    const r = new FileReader(); r.onload = ev => {
+      const h = profile.highlights.find(x => x.id === hlTarget);
+      if (h) { h.cover = { src: ev.target.result, panX: 0, panY: 0, z: 1 }; applyHighlights(); saveProfile(); }
+      hlTarget = null;
+    }; r.readAsDataURL(file); $('hlInput').value = '';
+  });
 }
+
+function applyAvatarImg() {
+  const av = normAvatar(profile.avatar);
+  const avatarEl = $('avatar'), img = $('avatarImg');
+  if (av && av.src) {
+    avatarEl.classList.add('has');
+    const applyTransform = () => applyCircleImg(img, av, avatarEl.offsetWidth || 76);
+    if (img.src === av.src && img.complete && img.naturalWidth > 0) {
+      applyTransform(); // already loaded (pan/zoom update)
+    } else {
+      img.onload = applyTransform;
+      img.onerror = applyTransform; // apply anyway — shows image at default position
+      img.src = av.src;
+    }
+  } else {
+    img.onload = null; img.onerror = null;
+    img.src = ''; avatarEl.classList.remove('has');
+  }
+}
+
 function applyProfile() {
   TEXT_FIELDS.forEach(f => { const el = document.querySelector(`[data-f="${f}"]`); if (el && document.activeElement !== el) el.textContent = profile[f] || ''; });
-  const av = $('avatar'), im = $('avatarImg');
-  if (profile.avatar) { im.src = profile.avatar; av.classList.add('has'); } else { im.src = ''; av.classList.remove('has'); }
+  applyAvatarImg();
   applyHighlights();
 }
+
 let hlTarget = null;
 function applyHighlights() {
   const toggle = $('hlToggle'), row = $('hlRow');
@@ -1523,8 +1732,24 @@ function applyHighlights() {
   profile.highlights.forEach(h => {
     const el = document.createElement('div'); el.className = 'hl';
     const c = document.createElement('div'); c.className = 'hl-circle';
-    if (h.cover) { const i = document.createElement('img'); i.src = h.cover; c.appendChild(i); } else c.textContent = '+';
-    c.addEventListener('click', () => { hlTarget = h.id; $('hlInput').click(); });
+    const cv = normCover(h.cover);
+    if (cv) {
+      const i = document.createElement('img'); i.src = cv.src;
+      const applyT = () => applyCircleImg(i, cv, 56);
+      if (i.complete && i.naturalWidth > 0) applyT(); else { i.onload = applyT; i.onerror = applyT; }
+      c.appendChild(i);
+      // click to replace (double-tap)
+      let tapT = 0;
+      c.addEventListener('click', () => { const now = Date.now(); if (now - tapT < 400) { hlTarget = h.id; $('hlInput').click(); tapT = 0; } else tapT = now; });
+      wireCircleCrop(c,
+        () => normCover(h.cover),
+        upd => { h.cover = Object.assign(normCover(h.cover), upd); const im = c.querySelector('img'); if (im) applyCircleImg(im, normCover(h.cover), 56); },
+        () => saveProfile()
+      );
+    } else {
+      c.textContent = '+';
+      c.addEventListener('click', () => { hlTarget = h.id; $('hlInput').click(); });
+    }
     const lab = document.createElement('div'); lab.className = 'hl-label'; lab.contentEditable = 'true'; lab.spellcheck = false; lab.textContent = h.label || 'name';
     lab.addEventListener('blur', () => { h.label = lab.textContent.trim() || 'name'; saveProfile(); });
     lab.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); lab.blur(); } });
