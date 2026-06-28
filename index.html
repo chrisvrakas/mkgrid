@@ -853,25 +853,33 @@ function renderRowGrips() {
       document.body.style.overflow = 'hidden'; document.body.style.touchAction = 'none';
       try { g.setPointerCapture(e.pointerId); } catch (_) {}
     });
-    g.addEventListener('pointermove', e => {
-      if (!rowDrag || rowDrag.id !== e.pointerId) return; e.preventDefault();
-      const gw = parseFloat(rowGhost.style.width);
-      rowGhost.style.left = (e.clientX - gw / 2) + 'px'; rowGhost.style.top = (e.clientY - 20) + 'px';
-      hintRow(rowAt(e.clientY), rowDrag.src);
-    });
-    const endRow = e => {
-      if (!rowDrag || rowDrag.id !== e.pointerId) return;
-      const tgt = rowAt(e.clientY);
-      rowGhost.style.display = 'none'; clearRowHints();
-      document.querySelectorAll('.row-grip').forEach(x => x.classList.remove('rg-active'));
-      document.body.style.overflow = ''; document.body.style.touchAction = '';
-      if (tgt >= 0 && tgt !== rowDrag.src) swapRows(rowDrag.src, tgt);
-      rowDrag = null;
-    };
-    g.addEventListener('pointerup', endRow); g.addEventListener('pointercancel', endRow);
     rg.appendChild(g);
   }
 }
+// Row drag move + end on document — ensures drag completes even if pointer capture fails
+// or pointer is released outside the grip element
+document.addEventListener('pointermove', e => {
+  if (!rowDrag || rowDrag.id !== e.pointerId) return; e.preventDefault();
+  const gw = parseFloat(rowGhost.style.width);
+  rowGhost.style.left = (e.clientX - gw / 2) + 'px'; rowGhost.style.top = (e.clientY - 20) + 'px';
+  hintRow(rowAt(e.clientY), rowDrag.src);
+}, { passive: false });
+document.addEventListener('pointerup', e => {
+  if (!rowDrag || rowDrag.id !== e.pointerId) return;
+  const tgt = rowAt(e.clientY);
+  rowGhost.style.display = 'none'; clearRowHints();
+  document.querySelectorAll('.row-grip').forEach(x => x.classList.remove('rg-active'));
+  document.body.style.overflow = ''; document.body.style.touchAction = '';
+  if (tgt >= 0 && tgt !== rowDrag.src) swapRows(rowDrag.src, tgt);
+  rowDrag = null;
+});
+document.addEventListener('pointercancel', e => {
+  if (!rowDrag || rowDrag.id !== e.pointerId) return;
+  rowGhost.style.display = 'none'; clearRowHints();
+  document.querySelectorAll('.row-grip').forEach(x => x.classList.remove('rg-active'));
+  document.body.style.overflow = ''; document.body.style.touchAction = '';
+  rowDrag = null;
+});
 function mkBtn(label, fn) { const b = document.createElement('button'); b.textContent = label; b.addEventListener('click', e => { e.stopPropagation(); fn(); }); return b; }
 
 function toggleSel(i) { if (!tiles[i]) return; sel.has(i) ? sel.delete(i) : sel.add(i); const c = grid.children[i]; if (c) c.classList.toggle('sel', sel.has(i)); updateExportUI(); }
