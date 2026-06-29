@@ -124,11 +124,7 @@
   .cell.assign-target { outline: 2px solid var(--accent) !important; outline-offset: -2px; animation: assignPulse 1s ease-in-out infinite; }
   .chip.assign-ready { outline: 2px solid var(--accent); outline-offset: 2px; }
   @keyframes assignPulse { 0%,100% { opacity:.7; } 50% { opacity:1; } }
-  .row-move { display: none; }
-  .row-move-wrap { display: none; }  /* hidden on desktop — #rowGrips column handles reorder */
-  .row-move-wrap .row-move { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 13px; padding: 0; border-radius: 3px; cursor: pointer; }
-  .row-move-wrap .row-move:hover { border-color: var(--accent); color: #fff; }
-  .row-move-wrap .row-move:disabled { opacity: .3; cursor: default; pointer-events: none; }
+  .row-move { display: none; }  /* hidden on desktop — grip column handles row reorder */
 
   /* main */
   /* workspace shell — centers + frames the tool so it reads as a contained object, not a void */
@@ -231,6 +227,9 @@
   .row-grip:active { cursor: grabbing; }
   .row-grip:hover { color: var(--accent); }
   .row-grip.rg-active { color: var(--accent); }
+  .row-grip-btn { width: 22px; height: 22px; background: rgba(0,0,0,.5); border: 1px solid var(--border-bright); color: var(--text-dim); font: inherit; font-size: 11px; padding: 0; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
+  .row-grip-btn:hover, .row-grip-btn:active { border-color: var(--accent); color: #fff; }
+  .row-grip-btn:disabled { opacity: .25; pointer-events: none; }
   .row-ghost { position: fixed; pointer-events: none; z-index: 9999; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; opacity: .8; border: 1.5px solid var(--accent); border-radius: 3px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6); }
   .row-ghost-cell { aspect-ratio: var(--ratio); overflow: hidden; position: relative; background: var(--surface); }
   .row-ghost-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -252,24 +251,25 @@
   .cell .plus { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #45464a; font-size: 18px; font-weight: 300; pointer-events: none; transition: color .15s; }
   .cell:hover .plus { color: #6a6b6f; }
 
-  .grip { position: absolute; top: 5px; left: 5px; width: 26px; height: 26px; border-radius: 5px; background: rgba(0,0,0,.55); color: #ddd; display: none; align-items: center; justify-content: center; cursor: grab; z-index: 16; font-size: 13px; touch-action: none; }
+  .grip { position: absolute; top: 5px; left: 5px; width: 22px; height: 22px; padding: 0; border-radius: 3px; background: rgba(0,0,0,.8); border: 1px solid #8a6a00; display: none; align-items: center; justify-content: center; cursor: grab; z-index: 16; touch-action: none; }
+  .grip svg { width: 8px; height: 8px; display: block; }
   .cell.has .grip { display: flex; }
   .cell.banner .grip { display: none; }
+  .grip:hover { border-color: #e0a020; color: #ffc24d; }
   .grip:active { cursor: grabbing; }
 
   .check { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.75); background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 16; }
-  .cell.has .check { display: flex; }
+  .cell.has:hover .check, .cell.has.active .check, .cell.sel .check { display: flex; }
   .cell.sel .check { background: var(--accent); border-color: var(--accent); }
   .check svg { width: 11px; height: 11px; stroke: #000; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
   .cell.sel .check svg { opacity: 1; }
 
-  .tools { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 12px); opacity: 0; transition: opacity .1s; z-index: 15; }
+  .tools { position: absolute; bottom: 6px; right: 6px; display: flex; flex-wrap: nowrap; gap: 3px; align-items: center; opacity: 0; transition: opacity .1s; z-index: 15; }
   .cell:hover .tools, .cell.active .tools { opacity: 1; }
-  .tools button { background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 9px; padding: 4px 6px; border-radius: 3px; cursor: pointer; letter-spacing: .3px; white-space: nowrap; }
+  .tools button { background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 9px; padding: 0 6px; height: 22px; border-radius: 3px; cursor: pointer; letter-spacing: .3px; white-space: nowrap; display: flex; align-items: center; justify-content: center; }
   .tools button:hover { border-color: var(--accent); color: #fff; }
   .tools button.span-btn { border-color: #8a6a00; color: #e0a020; }
   .tools button.span-btn:hover { border-color: #e0a020; color: #ffc24d; }
-  .tools button.replace-btn { display: none; }  /* desktop: hidden — use tray drag instead */
 
   .hint { margin-top: 10px; font-size: 11px; color: #8a8a8f; text-align: center; line-height: 1.7; }
   .rail { width: clamp(280px, 19vw, 360px); flex-shrink: 0; background: var(--surface); border-left: 1px solid var(--border); overflow-y: auto; padding: 22px 18px; display: flex; flex-direction: column; gap: 28px; }
@@ -337,6 +337,9 @@
   .feed-preview { display: flex; align-items: center; justify-content: center; min-height: 220px; max-height: 56dvh; overflow: auto; background: #0a0a0b; border: 1px solid var(--border); border-radius: 6px; margin: 14px 0 4px; }
   .feed-img { max-width: 100%; height: auto; display: block; border-radius: 3px; }
   .feed-loading { color: var(--text-dim); font-size: 12px; padding: 40px; }
+  .exp-prog-bar { height: 3px; background: var(--border); border-radius: 2px; margin: 14px 0 6px; overflow: hidden; }
+  #exportProgFill { height: 100%; width: 0%; background: var(--accent); border-radius: 2px; transition: width .2s ease; }
+  .exp-prog-label { font-size: 10px; color: var(--text-dim); text-align: center; letter-spacing: .5px; margin-bottom: 10px; }
 
   #ghost { position: fixed; pointer-events: none; z-index: 2000; width: 76px; aspect-ratio: var(--ratio); border-radius: 5px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,.6); opacity: .92; display: none; background: #222; }
   #ghost img { width: 100%; height: 100%; object-fit: cover; }
@@ -395,13 +398,11 @@
   }
   @media (max-width: 680px) {
     .row-grips { display: none; }
-    .row-move-wrap { display: flex; position: absolute; top: 4px; left: 4px; bottom: auto; transform: none; gap: 3px; z-index: 15; opacity: 0.4; }
-    .cell.active .row-move-wrap { opacity: 1; }
-    .row-move-wrap .row-move { width: 28px; height: 28px; font-size: 14px; background: rgba(0,0,0,.85); }
-    .cell .grip { display: none !important; }  /* grip replaced by row-move on mobile */
-    .check { top: 4px; right: 4px; }
+    .row-move { display: flex; }  /* show ↑↓ in tools on mobile */
+    .row-move:disabled { opacity: .3; pointer-events: none; }
+    .check { top: 4px; right: 4px; width: 30px; height: 30px; }
     .tools { bottom: 4px; right: 4px; }
-    .tools button { font-size: 8px; padding: 3px 5px; }
+    .tools button { font-size: 8px; }
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
     .site-footer .sf-ico { width: 15px; height: 15px; }
@@ -410,13 +411,10 @@
     .chip .name { display: none; }
     .chip .del { position: absolute; top: 2px; right: 3px; padding: 2px 5px; font-size: 16px; background: rgba(0,0,0,.35); border-radius: 4px; line-height: 1; }
     .desk { display: none; }
-    .grip, .check { width: 30px; height: 30px; }
     .zoombar .zoom input[type=range] { width: 150px; }
-    /* mobile cell UX: tappable plus, replace button, always-visible tools on active */
     .cell .plus { pointer-events: auto; cursor: pointer; font-size: 24px; color: #5a5b60; }
     .cell.has .plus { pointer-events: none; }
     .cell.active .tools { opacity: 1; }
-    .tools button.replace-btn { display: flex; }
   }
   @media (min-width: 821px) { .touch { display: none; } #assignHint { display: none !important; } }
 
@@ -549,12 +547,13 @@
       <div class="rail-block rail-help">
         <div class="rail-cat rail-cat-first">TIPS</div>
         <ul class="rail-tips">
-          <li><b>Span a photo like a collage</b> — tap <b>SPAN</b> on a row to stretch one image across all three tiles.</li>
-          <li><b>Export your work</b> — hit <b>EXPORT</b> to save every tile as a ready-to-post image, or your whole feed as one picture.</li>
-          <li><b>Keyboard shortcuts</b> — <b>Ctrl Z</b> / <b>Ctrl Y</b> to undo / redo.</li>
           <li><b>Rearrange</b> — grab a tile's ⠿ handle and drag it to a new spot.</li>
           <li><b>Reorder rows</b> — on desktop, grab the ⠿ handle on the left of any row and drag it up or down.</li>
           <li><b>Reframe a photo</b> — drag inside it to move the crop; mouse wheel or pinch to zoom. On a trackpad, hold <b>Ctrl</b> while scrolling.</li>
+          <li><b>Zoom on mobile</b> — tap a tile to select it, then pinch with two fingers directly on the tile.</li>
+          <li><b>Span a photo like a collage</b> — tap <b>SPAN</b> on a row to stretch one image across all three tiles.</li>
+          <li><b>Keyboard shortcuts</b> — <b>Ctrl Z</b> / <b>Ctrl Y</b> to undo / redo. <b>Delete</b> removes selected tiles.</li>
+          <li><b>Export your work</b> — hit <b>EXPORT</b> to save every tile as a ready-to-post image, or your whole feed as one picture.</li>
         </ul>
         <div class="rail-cat">FAQ</div>
         <details><summary>Do my photos stay private?</summary><p>Yes — completely. mkgrid runs entirely in your browser. There's no server, no upload, no account. Your images never leave your device.</p></details>
@@ -612,6 +611,10 @@
         <span class="selctl">Select <button class="mini" id="selAll">all</button><button class="mini" id="selNone">none</button></span>
       </div>
       <div class="preview" id="preview"></div>
+      <div id="exportProgress" hidden>
+        <div class="exp-prog-bar" id="exportProgBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="exportProgFill"></div></div>
+        <div id="exportProgLabel" class="exp-prog-label" aria-live="polite"></div>
+      </div>
       <div class="actions">
         <button class="btn" id="exportCancel">Cancel</button>
         <button class="btn btn-accent" id="exportGo">Download</button>
@@ -662,7 +665,7 @@ function openDB() {
     r.onsuccess = () => res(r.result); r.onerror = () => res(null);
   });
 }
-const put = (s, v) => new Promise(res => { if (!db) return res(); try { const t = db.transaction(s, 'readwrite'); t.objectStore(s).put(v); t.oncomplete = res; t.onerror = res; } catch (e) { res(); } });
+const put = (s, v) => new Promise(res => { if (!db) return res(); try { const t = db.transaction(s, 'readwrite'); t.objectStore(s).put(v); t.oncomplete = res; t.onerror = () => { console.error('mkgrid: save failed', t.error); res(); }; } catch (e) { console.error('mkgrid: save error', e); res(); } });
 const del = (s, k) => new Promise(res => { if (!db) return res(); try { const t = db.transaction(s, 'readwrite'); t.objectStore(s).delete(k); t.oncomplete = res; t.onerror = res; } catch (e) { res(); } });
 const all = s => new Promise(res => { if (!db) return res([]); try { const t = db.transaction(s, 'readonly'); const q = t.objectStore(s).getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => res([]); } catch (e) { res([]); } });
 let saveT = null;
@@ -672,7 +675,8 @@ function flashSaved() { const el = $('saved'); el.style.opacity = '1'; clearTime
 /* ---------- history ---------- */
 let hist = [], pos = -1;
 function snap() { return tiles.map(t => t ? { ...t } : null); }
-function commit() { hist = hist.slice(0, pos + 1); hist.push(snap()); if (hist.length > 60) hist.shift(); pos = hist.length - 1; updateHistUI(); save(); }
+const HIST_LIMIT = 60;
+function commit() { hist = hist.slice(0, pos + 1); hist.push(snap()); if (hist.length > HIST_LIMIT) hist.shift(); pos = hist.length - 1; updateHistUI(); save(); }
 function restore(s) { tiles = s.map(t => t ? { ...t } : null); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); }
 function undo() { if (pos > 0) { pos--; restore(hist[pos]); updateHistUI(); } }
 function redo() { if (pos < hist.length - 1) { pos++; restore(hist[pos]); updateHistUI(); } }
@@ -737,7 +741,8 @@ function render() {
     const cell = document.createElement('div'); cell.className = 'cell'; cell.dataset.i = i;
     const img = document.createElement('img'); img.alt = '';
     const plus = document.createElement('div'); plus.className = 'plus'; plus.textContent = '+';
-    const grip = document.createElement('div'); grip.className = 'grip'; grip.textContent = '⠿';
+    const grip = document.createElement('div'); grip.className = 'grip'; grip.setAttribute('aria-label', 'Drag to reorder');
+    grip.innerHTML = '<svg viewBox="0 0 8 8" fill="#e0a020" xmlns="http://www.w3.org/2000/svg"><circle cx="1.5" cy="1.5" r="1"/><circle cx="4" cy="1.5" r="1"/><circle cx="6.5" cy="1.5" r="1"/><circle cx="1.5" cy="4" r="1"/><circle cx="4" cy="4" r="1"/><circle cx="6.5" cy="4" r="1"/><circle cx="1.5" cy="6.5" r="1"/><circle cx="4" cy="6.5" r="1"/><circle cx="6.5" cy="6.5" r="1"/></svg>';
     const check = document.createElement('div'); check.className = 'check'; check.innerHTML = '<svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>';
     const tools = document.createElement('div'); tools.className = 'tools';
     // per-cell file input for mobile direct-upload
@@ -763,13 +768,23 @@ function render() {
           cell.classList.add('banner');
           const rm = mkBtn('✕', () => { removeBannerRow(t.banner.row); if (active != null && active >= t.banner.row * 3 && active < t.banner.row * 3 + 3) active = null; render(); updateExportUI(); syncZoom(); commit(); });
           tools.append(rm);
+          if (i % 3 === 0) {
+            const row = Math.floor(i / 3);
+            const mu = mkBtn('↑', () => { swapRows(row, row - 1); }); mu.className = 'row-move'; mu.title = 'Move row up'; if (row === 0) mu.disabled = true;
+            const md = mkBtn('↓', () => { swapRows(row, row + 1); }); md.className = 'row-move'; md.title = 'Move row down'; if (row === rows - 1) md.disabled = true;
+            tools.append(mu, md);
+          }
           check.addEventListener('click', e => { e.stopPropagation(); toggleSel(i); });
         } else {
           const rm = mkBtn('✕', () => { tiles[i] = null; sel.delete(i); if (active === i) active = null; render(); updateExportUI(); syncZoom(); commit(); });
           tools.append(rm);
-          // mobile replace button — opens per-cell picker
-          const rpl = mkBtn('⊕', () => { cellInput.click(); }); rpl.className = 'replace-btn'; rpl.title = 'Replace photo'; rpl.setAttribute('aria-label', 'Replace photo');
-          tools.append(rpl);
+          // row-move in tools for leftmost cells — mobile only (desktop uses grip column)
+          if (i % 3 === 0) {
+            const row = Math.floor(i / 3);
+            const mu = mkBtn('↑', () => { swapRows(row, row - 1); }); mu.className = 'row-move'; mu.title = 'Move row up'; if (row === 0) mu.disabled = true;
+            const md = mkBtn('↓', () => { swapRows(row, row + 1); }); md.className = 'row-move'; md.title = 'Move row down'; if (row === rows - 1) md.disabled = true;
+            tools.append(mu, md);
+          }
           if (i % 3 === 0 && i + 2 < total) {
             const sp = mkBtn('⟐ SPAN', () => spanRow(Math.floor(i / 3), t.imgId)); sp.classList.add('span-btn');
             tools.append(sp);
@@ -779,15 +794,6 @@ function render() {
         }
       } else { tiles[i] = null; img.style.display = 'none'; }
     } else { img.style.display = 'none'; }
-
-    // row-move buttons on leftmost cell — top-left overlay, separate from bottom tools
-    if (i % 3 === 0) {
-      const row = Math.floor(i / 3);
-      const rmWrap = document.createElement('div'); rmWrap.className = 'row-move-wrap';
-      const mu = mkBtn('↑', () => { swapRows(row, row - 1); }); mu.className = 'row-move'; mu.title = 'Move row up'; if (row === 0) mu.disabled = true;
-      const md = mkBtn('↓', () => { swapRows(row, row + 1); }); md.className = 'row-move'; md.title = 'Move row down'; if (row === rows - 1) md.disabled = true;
-      rmWrap.append(mu, md); cell.appendChild(rmWrap);
-    }
 
     if (sel.has(i)) cell.classList.add('sel');
     if (active === i) cell.classList.add('active', 'focus');
@@ -1112,6 +1118,7 @@ function setImgSrc(img, a) {
 
 function addFile(file) {
   if (!file.type.startsWith('image/')) return;
+  if (file.size > 50 * 1024 * 1024) { alert('Image is too large (max 50 MB). Please resize it first.'); return; }
   const r = new FileReader();
   r.onload = async e => {
     const ds = await downscale(e.target.result, 2400, file.type);
@@ -1125,6 +1132,7 @@ function addFile(file) {
 
 function addFileToCell(file, cellIdx) {
   if (!file.type.startsWith('image/')) return;
+  if (file.size > 50 * 1024 * 1024) { alert('Image is too large (max 50 MB). Please resize it first.'); return; }
   const r = new FileReader();
   r.onload = async e => {
     const ds = await downscale(e.target.result, 2400, file.type);
@@ -1139,6 +1147,7 @@ function addFileToCell(file, cellIdx) {
 }
 
 window.addEventListener('beforeunload', () => { Object.keys(blobCache).forEach(revokeBlobURL); });
+window.addEventListener('pagehide', () => { Object.keys(blobCache).forEach(revokeBlobURL); });
 function renderTray() {
   tray.innerHTML = '';
   if (!lib.length) { tray.innerHTML = '<div class="tray-empty">no photos yet</div>'; return; }
@@ -1196,7 +1205,7 @@ function syncZoom() {
   document.addEventListener('focusin', e => {
     if (!PCT_IDS.includes(e.target.id)) return;
     const lbl = e.target; lbl.textContent = lbl.textContent.replace('%','');
-    document.execCommand('selectAll', false, null);
+    const range = document.createRange(); range.selectNodeContents(lbl); const sel = window.getSelection(); if (sel) { sel.removeAllRanges(); sel.addRange(range); }
     lbl.style.background = 'rgba(255,68,56,.15)'; lbl.style.color = 'var(--accent)';
   });
   document.addEventListener('focusout', e => {
@@ -1207,7 +1216,15 @@ function syncZoom() {
     if (!PCT_IDS.includes(e.target.id)) return;
     if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
     if (e.key === 'Escape') { e.target.blur(); syncZoom(); }
-    if (!/[0-9]|Backspace|Delete|ArrowLeft|ArrowRight|Tab/.test(e.key) && !e.metaKey && !e.ctrlKey) e.preventDefault();
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const lbl = e.target;
+      const step = e.shiftKey ? 50 : 10;
+      const cur = parseInt(lbl.textContent.replace(/[^0-9]/g, '')) || 100;
+      lbl.textContent = Math.min(500, Math.max(100, cur + (e.key === 'ArrowUp' ? step : -step))) + '%';
+      apply(lbl);
+    }
+    if (!/[0-9]|Backspace|Delete|ArrowLeft|ArrowRight|ArrowUp|ArrowDown|Tab/.test(e.key) && !e.metaKey && !e.ctrlKey) e.preventDefault();
   });
 })();
 zoomRange.addEventListener('input', e => {
@@ -1280,7 +1297,10 @@ async function renderTileBlob(i, fmt) {
 function dl(blob, name) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1500); }
 async function downloadSingle() {
   const fmt = selectedFmt(), list = selList(); if (!list.length) return;
-  const i = list[0], blob = await renderTileBlob(i, fmt); if (!blob) return;
+  const btn = $('exportGo'); if (btn) { btn.disabled = true; btn.textContent = 'Rendering…'; }
+  const i = list[0], blob = await renderTileBlob(i, fmt);
+  if (btn) { btn.disabled = false; btn.textContent = 'Download'; }
+  if (!blob) return;
   dl(blob, `grid_${String(i + 1).padStart(2, '0')}.${fmt === 'jpg' ? 'jpg' : 'png'}`);
 }
 /* render a circle-cropped image to a square canvas at exportW px */
@@ -1305,20 +1325,50 @@ async function renderCircleBlob(cropState, exportW, fmt) {
 
 async function exportZip() {
   const fmt = selectedFmt(), ext = fmt === 'jpg' ? 'jpg' : 'png', files = [];
+  const safe = s => s.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const handle = safe(profile.handle || 'feed');
+  const btn = $('exportGo');
+
+  // count total work units
+  const tileList = selList();
+  const hasAvatar = !!profile.avatar;
+  const hlCovers = profile.highlights.filter(h => h.cover);
+  const totalSteps = tileList.length + (hasAvatar ? 1 : 0) + hlCovers.length;
+  let done = 0;
+
+  const progWrap = $('exportProgress'), progFill = $('exportProgFill'), progLabel = $('exportProgLabel');
+  const setProgress = (label) => {
+    done++;
+    const pct = totalSteps > 0 ? Math.min(100, Math.round(done / totalSteps * 100)) : 100;
+    progFill.style.width = pct + '%';
+    const bar = $('exportProgBar'); if (bar) bar.setAttribute('aria-valuenow', pct);
+    progLabel.textContent = label;
+  };
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Rendering…'; }
+  if (progWrap) { progWrap.hidden = false; progFill.style.width = '0%'; progLabel.textContent = ''; }
+
   // grid tiles
-  for (const i of selList()) { const blob = await renderTileBlob(i, fmt); if (!blob) continue; files.push({ name: `grid_${String(i + 1).padStart(2, '0')}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()) }); }
+  for (const i of tileList) {
+    const blob = await renderTileBlob(i, fmt); if (!blob) { done++; continue; }
+    files.push({ name: `grid_${String(i + 1).padStart(2, '0')}.${ext}`, data: new Uint8Array(await blob.arrayBuffer()) });
+    setProgress(`tile ${done} of ${totalSteps}`);
+  }
   // avatar
   const avBlob = await renderCircleBlob(profile.avatar, 1080, fmt);
-  if (avBlob) files.push({ name: `profile_image.${ext}`, data: new Uint8Array(await avBlob.arrayBuffer()) });
+  if (avBlob) { files.push({ name: `profile_image.${ext}`, data: new Uint8Array(await avBlob.arrayBuffer()) }); setProgress('profile image'); }
   // highlight covers
   for (let hi = 0; hi < profile.highlights.length; hi++) {
-    const h = profile.highlights[hi];
-    if (!h.cover) continue;
+    const h = profile.highlights[hi]; if (!h.cover) continue;
     const hBlob = await renderCircleBlob(h.cover, 1080, fmt);
-    if (hBlob) files.push({ name: `highlight_cover_${String(hi + 1).padStart(2, '0')}_${(h.label || 'cover').replace(/[^\w.-]/g, '_')}.${ext}`, data: new Uint8Array(await hBlob.arrayBuffer()) });
+    if (hBlob) { files.push({ name: `highlight_cover_${String(hi + 1).padStart(2, '0')}_${safe(h.label || 'cover')}.${ext}`, data: new Uint8Array(await hBlob.arrayBuffer()) }); setProgress(`highlight ${hi + 1}`); }
   }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Download'; }
+  if (progWrap) { setTimeout(() => { progWrap.hidden = true; progFill.style.width = '0%'; }, 1200); }
+
   if (!files.length) return;
-  dl(new Blob([buildZip(files)], { type: 'application/zip' }), `${(profile.handle || 'feed').replace(/[^\w.-]/g, '_')}_tiles.zip`);
+  dl(new Blob([buildZip(files)], { type: 'application/zip' }), `${handle}_tiles.zip`);
 }
 /* minimal STORED zip (PNG/JPG already compressed) — one file, no extra prompts */
 function buildZip(files) {
@@ -1348,7 +1398,27 @@ function buildZip(files) {
 }
 
 /* ---------- grid size ---------- */
-function setRows(n) { rows = n; total = n * 3; const next = Array(total).fill(null); for (let i = 0; i < Math.min(tiles.length, total); i++) next[i] = tiles[i] || null; tiles = next; normalizeBanners(); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit(); }
+function setRows(n) {
+  const newTotal = n * 3;
+  let src = tiles;
+  if (newTotal < tiles.length) {
+    // shrinking: find contiguous block of rows that best fits
+    // skip leading empty rows so bottom-up planning is preserved
+    const oldRows = tiles.length / 3;
+    let firstFilled = 0;
+    for (let r = 0; r < oldRows; r++) {
+      if (tiles[r*3] || tiles[r*3+1] || tiles[r*3+2]) { firstFilled = r; break; }
+      firstFilled = r + 1; // all empty — start from 0
+    }
+    // slice from firstFilled, keeping up to n rows; if too many filled rows, keep last n
+    const sliceStart = Math.max(firstFilled, oldRows - n);
+    src = tiles.slice(sliceStart * 3);
+  }
+  rows = n; total = newTotal;
+  const next = Array(total).fill(null);
+  for (let i = 0; i < Math.min(src.length, total); i++) next[i] = src[i] || null;
+  tiles = next; normalizeBanners(); sel.clear(); active = null; render(); updateExportUI(); syncZoom(); commit();
+}
 function setRatio(w, h) {
   RW = w; RH = h;
   document.documentElement.style.setProperty('--ratio', w + ' / ' + h);
