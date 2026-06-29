@@ -389,6 +389,9 @@
     .exp-ios-hint { display: block; }
     .row-grips { width: 22px; }
     .row-grip { font-size: 11px; }
+    /* sidebar hidden — enable per-cell + picker for the full mobile breakpoint */
+    .cell .plus { pointer-events: auto; cursor: pointer; }
+    .cell.has .plus { pointer-events: none; }
   }
   @media (max-width: 680px) {
     .row-grips { display: none; }
