@@ -14,7 +14,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mkgrid.app/">
 <meta property="og:site_name" content="mkgrid">
-<meta property="og:title" content="mkgrid — plan your Instagram grid before you post">
+<meta property="og:title" content="mkgrid — plan your Instagram grid">
 <meta property="og:description" content="Drag in your photos, arrange the feed, set every crop, export. Local-only, open-source, nothing leaves your device.">
 <meta property="og:image" content="https://mkgrid.app/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -25,7 +25,7 @@
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="https://mkgrid.app/">
-<meta name="twitter:title" content="mkgrid — plan your Instagram grid before you post">
+<meta name="twitter:title" content="mkgrid — plan your Instagram grid">
 <meta name="twitter:description" content="Drag in your photos, arrange the feed, set every crop, export. Local-only, open-source, nothing leaves your device.">
 <meta name="twitter:image" content="https://mkgrid.app/og-image.png">
 <meta name="twitter:image:alt" content="mkgrid — a privacy-first Instagram grid planner">
@@ -125,8 +125,7 @@
   .chip.assign-ready { outline: 2px solid var(--accent); outline-offset: 2px; }
   @keyframes assignPulse { 0%,100% { opacity:.7; } 50% { opacity:1; } }
   .row-move { display: none; }
-  .row-move-wrap { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); display: none; gap: 4px; z-index: 15; }
-  .cell:hover .row-move-wrap, .cell.active .row-move-wrap { display: flex; }
+  .row-move-wrap { display: none; }  /* hidden on desktop — #rowGrips column handles reorder */
   .row-move-wrap .row-move { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 13px; padding: 0; border-radius: 3px; cursor: pointer; }
   .row-move-wrap .row-move:hover { border-color: var(--accent); color: #fff; }
   .row-move-wrap .row-move:disabled { opacity: .3; cursor: default; pointer-events: none; }
@@ -264,9 +263,9 @@
   .check svg { width: 11px; height: 11px; stroke: #000; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
   .cell.sel .check svg { opacity: 1; }
 
-  .tools { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 5px; opacity: 0; transition: opacity .1s; z-index: 15; }
+  .tools { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 12px); opacity: 0; transition: opacity .1s; z-index: 15; }
   .cell:hover .tools, .cell.active .tools { opacity: 1; }
-  .tools button { background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 9px; padding: 4px 7px; border-radius: 3px; cursor: pointer; letter-spacing: .3px; }
+  .tools button { background: rgba(0,0,0,.8); border: 1px solid var(--border-bright); color: #ddd; font: inherit; font-size: 9px; padding: 4px 6px; border-radius: 3px; cursor: pointer; letter-spacing: .3px; white-space: nowrap; }
   .tools button:hover { border-color: var(--accent); color: #fff; }
   .tools button.span-btn { border-color: #8a6a00; color: #e0a020; }
   .tools button.span-btn:hover { border-color: #e0a020; color: #ffc24d; }
@@ -393,8 +392,13 @@
   }
   @media (max-width: 680px) {
     .row-grips { display: none; }
-    .row-move-wrap { display: flex; bottom: 6px; top: auto; left: 6px; transform: none; opacity: 0.3; }
+    .row-move-wrap { display: flex; position: absolute; top: 4px; left: 4px; bottom: auto; transform: none; gap: 3px; z-index: 15; opacity: 0.4; }
     .cell.active .row-move-wrap { opacity: 1; }
+    .row-move-wrap .row-move { width: 28px; height: 28px; font-size: 14px; background: rgba(0,0,0,.85); }
+    .cell .grip { display: none !important; }  /* grip replaced by row-move on mobile */
+    .check { top: 4px; right: 4px; }
+    .tools { bottom: 4px; right: 4px; }
+    .tools button { font-size: 8px; padding: 3px 5px; }
     .site-footer .sf-wrap { gap: 8px; max-width: none; }
     .site-footer .sf-line { font-size: 11px; }
     .site-footer .sf-ico { width: 15px; height: 15px; }
@@ -821,12 +825,24 @@ function buildRowGhost(r) {
 }
 
 function rowAt(clientY) {
-  // Use leftmost cell of each row — always exists, reliably sized
+  // Method 1: leftmost cell of each row — reliably sized
   for (let r = 0; r < rows; r++) {
     const cell = grid.children[r * 3];
     if (!cell) continue;
     const rect = cell.getBoundingClientRect();
-    if (clientY >= rect.top && clientY <= rect.bottom) return r;
+    if (clientY >= rect.top - 5 && clientY <= rect.bottom + 5) return r;
+  }
+  // Method 2: elementFromPoint fallback — works even when coordinates are fuzzed
+  const el = document.elementFromPoint(window.innerWidth / 2, clientY);
+  if (el) {
+    let cur = el;
+    while (cur) {
+      if (cur.classList && cur.classList.contains('cell')) {
+        const idx = parseInt(cur.dataset.i);
+        if (!isNaN(idx)) return Math.floor(idx / 3);
+      }
+      cur = cur.parentElement;
+    }
   }
   return -1;
 }
@@ -855,7 +871,8 @@ function renderRowGrips() {
       buildRowGhost(r0);
       const gw = grid.getBoundingClientRect().width / 3 * 2.5;
       rowGhost.style.width = gw + 'px'; rowGhost.style.display = 'grid';
-      rowGhost.style.left = (e.clientX - gw / 2) + 'px'; rowGhost.style.top = (e.clientY - 20) + 'px';
+      rowGhost.style.left = '50%'; rowGhost.style.transform = 'translateX(-50%)';
+      rowGhost.style.top = (e.clientY - 20) + 'px';
       document.body.style.overflow = 'hidden'; document.body.style.touchAction = 'none';
       try { g.setPointerCapture(e.pointerId); } catch (_) {}
     });
@@ -866,8 +883,7 @@ function renderRowGrips() {
 // or pointer is released outside the grip element
 document.addEventListener('pointermove', e => {
   if (!rowDrag || rowDrag.id !== e.pointerId) return; e.preventDefault();
-  const gw = parseFloat(rowGhost.style.width);
-  rowGhost.style.left = (e.clientX - gw / 2) + 'px'; rowGhost.style.top = (e.clientY - 20) + 'px';
+  rowGhost.style.top = (e.clientY - 20) + 'px';
   hintRow(rowAt(e.clientY), rowDrag.src);
 }, { passive: false });
 document.addEventListener('pointerup', e => {
